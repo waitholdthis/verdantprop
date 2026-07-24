@@ -1,0 +1,47 @@
+/* listings.html — keeps Verdant homepage feel */
+
+.listings-hero {
+  padding-block: clamp(4rem, 8vw, 6.5rem);
+  background:
+    radial-gradient(1200px 600px at 10% 20%, rgba(27,77,62,0.18), transparent),
+    radial-gradient(900px 500px at 90% 80%, rgba(27,77,62,0.14), transparent),
+    var(--bg);
+}
+.listings-section .section-head { margin-bottom: clamp(2.5rem, 5vw, 3.75rem); }
+.listings-grid-foot { margin-top: 1.4rem; }
+
+.listings-hero .hero-heading {
+  font-size: clamp(2.8rem, 5.6vw, 4.8rem);
+  color: var(--ink);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  max-width: 14ch;
+}
+.listings-hero .hero-sub {
+  color: var(--body);
+  max-width: 60ch;
+  margin-top: 1.2rem;
+  font-size: clamp(1.04rem, 0.94rem + 0.44vw, 1.2rem);
+}
+
+.listing-media {
+  width: 100%;
+  aspect-ratio: 5 / 4;
+  background: linear-gradient(160deg, #e6e4dc 0%, #d6d3c9 100%);
+  display: grid;
+  place-items: center;
+}
+.listing-placeholder {
+  color: var(--muted);
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.listing:hover { transform: translateY(-5px); border-color: var(--line-strong); box-shadow: var(--shadow-lg); }
+
+.statement-actions { margin-top: 1.8rem; display: flex; flex-wrap: wrap; gap: 1rem; }
+
+@media (max-width: 860px) {
+  .listing-grid { grid-template-columns: 1fr; }
+}

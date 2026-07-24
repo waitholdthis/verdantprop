@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Listings — Verdant Properties</title>
+  <meta name="theme-color" content="#1B4D3E" />
+  <link rel="icon" href="assets/img/logo.webp" type="image/webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/listings.css" />
+</head>
+<body>
+  <a class="skip-link" href="#contact">Skip to contact</a>
+
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="Verdant Properties home">
+        <img src="assets/img/logo.webp" alt="Verdant Properties logo" class="brand-logo" />
+        <span class="brand-word">Verdant Properties</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="index.html#services">Services</a>
+        <a href="listings.html" class="active">Listings</a>
+        <a href="index.html#landlords">Landlords</a>
+        <a href="index.html#renters">Renters</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+      <a class="btn btn-primary header-cta" href="index.html#contact">Get Started</a>
+      <button class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="primary-nav" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <nav id="primary-nav" class="mobile-nav" hidden aria-label="Mobile">
+      <a href="index.html#services">Services</a>
+      <a href="listings.html">Listings</a>
+      <a href="index.html#landlords">Landlords</a>
+      <a href="index.html#renters">Renters</a>
+      <a href="index.html#about">About</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="listings-hero" aria-labelledby="listings-hero-heading">
+      <div class="container">
+        <p class="tag tag-light">Available homes</p>
+        <h1 class="hero-heading reveal" id="listings-hero-heading">Rentals in Fayetteville.</h1>
+        <p class="hero-sub reveal">Browse current availability or reach out to be matched with upcoming openings.</p>
+        <p class="hero-trust reveal">
+          <span class="trust-pill">NC Firm License #C40094</span>
+          <span class="trust-pill">Fayetteville, NC</span>
+          <span class="trust-pill">Contact to apply</span>
+        </p>
+      </div>
+    </section>
+
+    <section class="section listings-section" aria-labelledby="listings-section-heading">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <p class="tag tag-dark">Featured listings</p>
+            <h2 class="section-title" id="listings-section-heading">Current inventory.</h2>
+          </div>
+          <p class="section-note">These listings are updated from our live inventory. Contact us to confirm availability and schedule a showing.</p>
+        </div>
+
+        <ul class="listing-grid" role="list">
+          <li class="listing reveal">
+            <div class="listing-media" aria-hidden="true">
+              <span class="listing-placeholder">Property preview</span>
+            </div>
+            <div class="listing-body">
+              <p class="listing-address">1010 Laurel St</p>
+              <p class="listing-meta">3 bed · 3 bath · 1,770 sqft · $1,900/month</p>
+              <a class="btn btn-primary" href="tel:+19109226519">Apply now <span aria-hidden="true">→</span></a>
+            </div>
+          </li>
+          <li class="listing reveal">
+            <div class="listing-media" aria-hidden="true">
+              <span class="listing-placeholder">Property preview</span>
+            </div>
+            <div class="listing-body">
+              <p class="listing-address">1012 Laurel St</p>
+              <p class="listing-meta">3 bed · 3 bath · 1,770 sqft · $2,000/month</p>
+              <a class="btn btn-primary" href="tel:+19109226519">Apply now <span aria-hidden="true">→</span></a>
+            </div>
+          </li>
+          <li class="listing reveal">
+            <div class="listing-media" aria-hidden="true">
+              <span class="listing-placeholder">Property preview</span>
+            </div>
+            <div class="listing-body">
+              <p class="listing-address">1014 Laurel St</p>
+              <p class="listing-meta">3 bed · 3 bath · 1,770 sqft · $1,900/month</p>
+              <a class="btn btn-primary" href="tel:+19109226519">Apply now <span aria-hidden="true">→</span></a>
+            </div>
+          </li>
+          <li class="listing reveal">
+            <div class="listing-media" aria-hidden="true">
+              <span class="listing-placeholder">Property preview</span>
+            </div>
+            <div class="listing-body">
+              <p class="listing-address">1016 Laurel St</p>
+              <p class="listing-meta">3 bed · 3 bath · 1,770 sqft · $1,900/month</p>
+              <a class="btn btn-primary" href="tel:+19109226519">Apply now <span aria-hidden="true">→</span></a>
+            </div>
+          </li>
+        </ul>
+
+        <div class="listings-grid-foot reveal">
+          <p class="listings-foot">
+            Want more options? <a class="link-mono" href="https://www.verdantprop.com/listings" target="_blank" rel="noopener">View all DoorLoop listings <span aria-hidden="true">→</span></a>
+            or <a class="link-mono" href="tel:+19109226519">call us <span aria-hidden="true">→</span></a>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section statement" aria-labelledby="listings-cta-heading">
+      <div class="container">
+        <h2 class="statement" id="listings-cta-heading">
+          Ready to apply? We make it fast.
+        </h2>
+        <p class="statement-sub">Call us, email us, or visit our interest form and we will walk you through next steps within one business day.</p>
+        <div class="statement-actions reveal">
+          <a class="btn btn-secondary" href="index.html#contact">Go to contact form</a>
+          <a class="btn btn-primary" href="tel:+19109226519">Call now</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <div>
+          <img src="assets/img/logo.webp" alt="Verdant Properties logo" class="footer-logo" />
+          <p class="footer-tagline">Property management with a personal touch.</p>
+        </div>
+      </div>
+      <nav class="footer-nav" aria-label="Footer">
+        <a href="index.html#services">Services</a>
+        <a href="listings.html">Listings</a>
+        <a href="index.html#landlords">Landlords</a>
+        <a href="index.html#renters">Renters</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+      <div class="footer-bottom">
+        <p>© <span id="year"></span> Verdant Properties. NC Firm License #C40094. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js" defer></script>
+</body>
+</html>
