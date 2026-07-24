@@ -518,13 +518,14 @@ img, svg { display: block; max-width: 100%; }
   box-shadow: var(--shadow-sm);
   transition: transform 0.45s var(--ease-out), border-color 0.35s ease, box-shadow 0.45s var(--ease-out);
 }
-.listing img { width: 100%; aspect-ratio: 5 / 4; object-fit: cover; transform: scale(1.02); transition: transform 0.7s var(--ease-out); }
-.listing:hover { transform: translateY(-5px); border-color: var(--line-strong); box-shadow: var(--shadow-lg); }
-.listing:hover img { transform: scale(1.06); }
+.listing-media { width: 100%; aspect-ratio: 5 / 4; background: linear-gradient(160deg, #e6e4dc 0%, #d6d3c9 100%); display: grid; place-items: center; }
+.listing-placeholder { color: var(--muted); font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; }
 .listing-body { padding: 1rem 1.1rem 1.2rem; }
 .listing-address { color: var(--ink); font-weight: 600; font-size: 1rem; }
 .listing-meta { color: var(--body); font-size: 0.92rem; margin-top: 0.2rem; }
-.listings-foot { color: var(--muted); font-size: 0.96rem; margin-top: 1.4rem; }
+.listing:hover { transform: translateY(-5px); border-color: var(--line-strong); box-shadow: var(--shadow-lg); }
+.listing-foot { color: var(--muted); font-size: 0.96rem; margin-top: 1.2rem; }
+
 .link-mono {
   font-family: var(--font-mono, var(--font-sans));
   font-size: 0.84rem;
