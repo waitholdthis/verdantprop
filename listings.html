@@ -2,175 +2,202 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Listings — Verdant Properties</title>
-  <meta name="theme-color" content="#1B4D3E" />
-  <meta property="og:title" content="Listings — Verdant Properties" />
-  <meta property="og:description" content="Browse current rental listings in Fayetteville, NC. Contact Verdant Properties to confirm availability and schedule a showing." />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Residences for Rent in Fayetteville, NC | Verdant Properties</title>
+  <meta name="description" content="Browse verified rental homes in Fayetteville, NC with photos, video, and 3D walk-throughs. Managed locally by Verdant Properties." />
+  <meta name="theme-color" content="#0b231b" />
+  <meta property="og:title" content="Residences for Rent in Fayetteville, NC | Verdant Properties" />
+  <meta property="og:description" content="Browse verified rental homes in Fayetteville, NC with photos, video, and 3D walk-throughs. Managed locally by Verdant Properties." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="assets/img/fayetteville-hero.png" />
+  <meta property="og:url" content="https://www.verdantprop.com/listings" />
+  <meta property="og:image" content="https://www.verdantprop.com/assets/img/market-house-1600.webp" />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="canonical" href="https://www.verdantprop.com/listings" />
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/img/logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"LocalBusiness","name":"Verdant Properties","description":"Locally owned property management and real estate in Fayetteville, NC.","url":"https://www.verdantprop.com/","telephone":"+19109226519","email":"verdantprop1@gmail.com","address":{"@type":"PostalAddress","addressLocality":"Fayetteville","addressRegion":"NC","addressCountry":"US"},"license":"NC Firm License #C40094"}
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <script>document.documentElement.classList.add('js')</script>
 </head>
-<body>
-  <a class="skip-link" href="#contact">Skip to contact</a>
+<body class="page-solid">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs><clipPath id="leaf-clip"><circle cx="24" cy="24" r="21"/></clipPath></defs>
+    <symbol id="leaf" viewBox="0 0 48 58">
+      <g fill="none" stroke="currentColor" stroke-linecap="round">
+        <circle cx="24" cy="24" r="21"/>
+        <path d="M24 12V56"/>
+        <path clip-path="url(#leaf-clip)" d="M24 12 12 0M24 12 36 0M24 24 6 6M24 24 42 6M24 36 3 15M24 36 45 15"/>
+      </g>
+    </symbol>
+  </svg>
 
-  <header class="site-header" id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
     <div class="container header-inner">
-      <a class="brand" href="index.html" aria-label="Verdant Properties home">
-        <img src="assets/img/logo.webp" alt="Verdant Properties logo" class="brand-logo" />
-        <span class="brand-word">Verdant Properties</span>
+      <a class="brand" href="index.html" aria-label="Verdant Properties, home">
+        <svg class="leaf" viewBox="0 0 48 58" aria-hidden="true"><use href="#leaf"/></svg>
+        <span class="brand-word"><b>VERDANT</b><small>PROPERTIES</small></span>
       </a>
       <nav class="site-nav" aria-label="Primary">
-        <a href="index.html#services">Services</a>
-        <a href="listings.html" class="active">Listings</a>
-        <a href="index.html#landlords">Landlords</a>
-        <a href="index.html#renters">Renters</a>
-        <a href="index.html#about">About</a>
-        <a href="index.html#contact">Contact</a>
+        <a href="listings.html" aria-current="page">Residences</a>
+        <a href="owners.html">Owners</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
       </nav>
-      <a class="btn btn-primary header-cta" href="index.html#contact">Get Started</a>
-      <button class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="primary-nav" aria-label="Open menu">
-        <span></span><span></span><span></span>
-      </button>
+      <div class="header-actions">
+        <a class="header-phone" href="tel:+19109226519">(910) 922-6519</a>
+        <a class="btn" href="https://verdantprop.app.doorloop.com/auth/login" target="_blank" rel="noopener">Portal login</a>
+      </div>
+      <button class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span><span></span></button>
     </div>
-    <nav id="primary-nav" class="mobile-nav" hidden aria-label="Mobile">
-      <a href="index.html#services">Services</a>
-      <a href="listings.html">Listings</a>
-      <a href="index.html#landlords">Landlords</a>
-      <a href="index.html#renters">Renters</a>
-      <a href="index.html#about">About</a>
-      <a href="index.html#contact">Contact</a>
-    </nav>
   </header>
+  <div class="menu" id="menu">
+    <nav aria-label="Mobile">
+      <a href="index.html">Home</a>
+      <a href="listings.html">Residences</a>
+      <a href="owners.html">Owners</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="https://verdantprop.app.doorloop.com/auth/login" target="_blank" rel="noopener">Portal login</a>
+    </nav>
+    <div class="menu-foot">
+      <a href="tel:+19109226519">(910) 922-6519</a>
+      <a href="mailto:verdantprop1@gmail.com">verdantprop1@gmail.com</a>
+      <span>Fayetteville, North Carolina</span>
+    </div>
+  </div>
 
-  <main>
-    <section class="listings-hero" aria-labelledby="listings-hero-heading">
-      <div class="hero-cinematic-bg" aria-hidden="true">
-        <img class="hero-bg-img" src="../assets/img/fayetteville-hero.png" alt="Fayetteville area" loading="eager" />
-        <div class="hero-bg-vignette"></div>
-        <div class="hero-bg-shimmer"></div>
-        <div class="hero-bg-bottom-fade"></div>
-      </div>
-      <div class="hero-veil" aria-hidden="true"></div>
-      <div class="container hero-inner">
-        <p class="tag tag-light">Available homes</p>
-        <h1 class="hero-heading reveal" id="listings-hero-heading">Rentals in Fayetteville.</h1>
-        <p class="hero-sub reveal">Browse current availability or reach out to be matched with upcoming openings.</p>
-        <p class="hero-trust reveal">
-          <span class="trust-pill">NC Firm License #C40094</span>
-          <span class="trust-pill">Fayetteville, NC</span>
-          <span class="trust-pill">Contact to apply</span>
-        </p>
+  <main id="main">
+    <section class="page-hero" aria-labelledby="page-title">
+      <div class="container page-hero-grid">
+        <div>
+          <p class="eyebrow reveal">Residences</p>
+          <h1 class="display display--lg" id="page-title" data-split>Homes, <em>verified</em> &amp; ready to tour.</h1>
+        </div>
+        <p class="lede reveal">Every home here is managed directly by Verdant Properties. Filter by what matters, explore the photos, video, and 3D walk-throughs, then schedule a showing in a few clicks.</p>
       </div>
     </section>
 
-    <section class="section listings-section" aria-labelledby="listings-section-heading">
+    <div class="filters" role="search">
+      <form class="container filters-inner" data-filters>
+        <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.4-4.4"/></svg><span class="sr-only">Search</span><input type="search" name="q" placeholder="Search address or area" autocomplete="off" /></label>
+        <label><span class="sr-only">Listing type</span><select name="type"><option value="">All listings</option><option value="rent">For rent</option><option value="lease">For lease</option><option value="sale">For sale</option></select></label>
+        <label><span class="sr-only">Property type</span><select name="kind"><option value="">Any property</option><option value="house">House</option><option value="townhome">Townhome</option><option value="apartment">Apartment</option><option value="condo">Condo</option><option value="duplex">Duplex / multi-family</option><option value="commercial">Commercial building</option><option value="office">Office</option><option value="retail">Retail</option><option value="land">Land</option></select></label>
+        <label><span class="sr-only">Bedrooms</span><select name="beds"><option value="0">Any beds</option><option value="1">1+ beds</option><option value="2">2+ beds</option><option value="3">3+ beds</option><option value="4">4+ beds</option></select></label>
+        <label><span class="sr-only">Maximum price</span><select name="max"><option value="">Any price</option><option value="1250">Up to $1,250</option><option value="1500">Up to $1,500</option><option value="1750">Up to $1,750</option><option value="2000">Up to $2,000</option><option value="2500">Up to $2,500</option><option value="3500">Up to $3,500</option></select></label>
+        <label><span class="sr-only">Sort</span><select name="sort"><option value="featured">Featured</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option><option value="newest">Newest</option><option value="size">Largest</option></select></label>
+        <label class="chip chip--save"><input type="checkbox" name="saved" value="1" /><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 20.3s-7.8-4.6-7.8-10.4A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.8 2.5c0 5.8-7.8 10.4-7.8 10.4z"/></svg>Saved <b data-saved-count></b></span></label>
+        <p class="count" aria-live="polite"><b data-count>0</b> homes</p>
+        <div class="view-toggle" role="group" aria-label="View"><button type="button" data-view="grid" aria-pressed="true">Grid</button><button type="button" data-view="map" aria-pressed="false">Map</button></div>
+      </form>
+    </div>
+
+    <section class="section section--tight" aria-label="Listings">
       <div class="container">
-        <div class="section-head reveal">
+        <div class="lwrap" data-lwrap><div class="grid-listings" data-listings></div><div class="lmap-wrap" hidden><div class="lmap" data-lmap role="region" aria-label="Map of listings"></div></div></div>
+      </div>
+    </section>
+
+    <section class="section section--tight" aria-labelledby="safe-title" style="padding-top:0">
+      <div class="container">
+        <div class="notice reveal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.3 7.5 9.5 4.4-1.2 7.5-4.9 7.5-9.5V6z"/><path d="m8.8 12 2.2 2.2 4.4-4.4"/></svg>
           <div>
-            <p class="tag tag-dark">Featured listings</p>
-            <h2 class="section-title" id="listings-section-heading">Current inventory.</h2>
+            <h2 id="safe-title">Rent with confidence.</h2>
+            <p>Rental scams are common in the Fort Bragg area. Verdant Properties will never ask you to wire money, pay with gift cards, or send a deposit before you&rsquo;ve toured the home and signed a lease. If you see one of our homes advertised elsewhere at a suspiciously low price, call us at <a href="tel:+19109226519" style="color:var(--forest);text-decoration:underline">(910) 922-6519</a>.</p>
           </div>
-          <p class="section-note">These listings are updated from our live inventory. Contact us to confirm availability and schedule a showing.</p>
-        </div>
-
-        <ul class="listing-grid" role="list">
-          <li class="listing reveal">
-            <div class="listing-media" aria-hidden="true">
-              <span class="listing-placeholder">Property preview</span>
-            </div>
-            <div class="listing-body">
-              <p class="listing-address">1010 Laurel St</p>
-              <p class="listing-meta">3 bed · 3 bath · 1,770 sqft · $1,900/month</p>
-              <a class="btn btn-primary" href="https://www.verdantprop.com/listings" target="_blank" rel="noopener">View listing <span aria-hidden="true">→</span></a>
-            </div>
-          </li>
-          <li class="listing reveal">
-            <div class="listing-media" aria-hidden="true">
-              <span class="listing-placeholder">Property preview</span>
-            </div>
-            <div class="listing-body">
-              <p class="listing-address">1012 Laurel St</p>
-              <p class="listing-meta">3 bed · 3 bath · 1,770 sqft · $2,000/month</p>
-              <a class="btn btn-primary" href="https://www.verdantprop.com/listings" target="_blank" rel="noopener">View listing <span aria-hidden="true">→</span></a>
-            </div>
-          </li>
-          <li class="listing reveal">
-            <div class="listing-media" aria-hidden="true">
-              <span class="listing-placeholder">Property preview</span>
-            </div>
-            <div class="listing-body">
-              <p class="listing-address">1014 Laurel St</p>
-              <p class="listing-meta">3 bed · 3 bath · 1,770 sqft · $1,900/month</p>
-              <a class="btn btn-primary" href="https://www.verdantprop.com/listings" target="_blank" rel="noopener">View listing <span aria-hidden="true">→</span></a>
-            </div>
-          </li>
-          <li class="listing reveal">
-            <div class="listing-media" aria-hidden="true">
-              <span class="listing-placeholder">Property preview</span>
-            </div>
-            <div class="listing-body">
-              <p class="listing-address">1016 Laurel St</p>
-              <p class="listing-meta">3 bed · 3 bath · 1,770 sqft · $1,900/month</p>
-              <a class="btn btn-primary" href="https://www.verdantprop.com/listings" target="_blank" rel="noopener">View listing <span aria-hidden="true">→</span></a>
-            </div>
-          </li>
-        </ul>
-
-        <div class="listings-grid-foot reveal">
-          <p class="listings-foot">
-            Want more options? <a class="link-mono" href="https://www.verdantprop.com/listings" target="_blank" rel="noopener">View all DoorLoop listings <span aria-hidden="true">→</span></a>
-            or <a class="link-mono" href="tel:+19109226519">call us <span aria-hidden="true">→</span></a>
-          </p>
-          <p class="listings-foot">
-            Prefer email? <a class="link-mono" href="mailto:verdantprop1@gmail.com">verdantprop1@gmail.com <span aria-hidden="true">→</span></a>
-          </p>
         </div>
       </div>
     </section>
 
-    <section class="section statement" aria-labelledby="listings-cta-heading">
+    <section class="section bg-bone" id="faq" aria-labelledby="faq-title">
+      <div class="container faq-grid">
+        <div>
+          <p class="eyebrow reveal">Renter FAQ</p>
+          <h2 class="title mt-1" id="faq-title" data-split>Good <em>questions.</em></h2>
+          <p class="mt-2 reveal">Still wondering? Call <a href="tel:+19109226519" style="color:var(--forest)">(910) 922-6519</a> or <a href="contact.html" style="color:var(--forest)">send us a note</a>.</p>
+        </div>
+        <div class="faq reveal">
+          <details><summary>When can I schedule a showing?<i aria-hidden="true"></i></summary><p>Contact us or use the scheduler on any listing. Let us know the dates and times that work best for you and we&rsquo;ll do our best to accommodate your schedule.</p></details>
+          <details><summary>Who needs to fill out an application?<i aria-hidden="true"></i></summary><p>Any adult over the age of 18 will fill out an application and pay the non-refundable application fee.</p></details>
+          <details><summary>Do you run background checks?<i aria-hidden="true"></i></summary><p>Yes. As part of your rental application, we request background checks from TransUnion that include criminal, eviction, and credit history. If you have concerns, discuss them with us before paying for the application.</p></details>
+          <details><summary>Do you require a security deposit?<i aria-hidden="true"></i></summary><p>Yes. The amount varies per rental and can be anywhere from one to two months&rsquo; rent.</p></details>
+          <details><summary>How long is the lease term?<i aria-hidden="true"></i></summary><p>Leases normally run for one year, sometimes with an option to renew. Depending on the property, we may be able to work with you on different terms.</p></details>
+          <details><summary>How quickly can I move in?<i aria-hidden="true"></i></summary><p>We&rsquo;ll work to get you moved in on the timeline that works best for you. Your move-in date depends on the status of the property you&rsquo;re leasing.</p></details>
+          <details><summary>What does the tenant portal do?<i aria-hidden="true"></i></summary><p>The Tenant Portal is an online tool provided at no cost. Pay rent online, view payments, add renter&rsquo;s insurance, and submit or track maintenance requests.</p></details>
+          <details><summary>How often is rent due and how can I pay?<i aria-hidden="true"></i></summary><p>Rent is due monthly, usually on the 1st. We recommend automatic online payment by credit card, debit card, or ACH.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="section cta" aria-labelledby="cta-title">
+      <div class="cta-bg" aria-hidden="true"><img src="assets/img/fayetteville-hero.png" alt="" loading="lazy" /></div>
       <div class="container">
-        <h2 class="statement" id="listings-cta-heading">
-          Ready to apply? We make it fast.
-        </h2>
-        <p class="statement-sub">Call us, email us, or visit our interest form and we will walk you through next steps within one business day.</p>
-        <div class="statement-actions reveal">
-          <a class="btn btn-secondary" href="index.html#contact">Go to contact form</a>
-          <a class="btn btn-primary" href="tel:+19109226519">Call now</a>
+        <p class="eyebrow">Not seeing the one?</p>
+        <h2 class="display display--lg" id="cta-title" data-split>Be first to hear about <em>new homes.</em></h2>
+        <p class="lede">Tell us what you&rsquo;re looking for and when you need it. We&rsquo;ll reach out as soon as a match opens up.</p>
+        <div class="cta-actions">
+          <a class="btn btn--brass" href="contact.html?about=upcoming%20rentals">Tell us what you need <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M3 12h17M14 6l6 6-6 6"/></svg></a>
+          <a class="btn btn--outline-light" href="tel:+19109226519">Call (910) 922-6519</a>
         </div>
       </div>
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="container footer-inner">
-      <div class="footer-brand">
+  <footer class="site-footer on-dark">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-intro">
+          <p class="title">Rooted in <em>Fayetteville.</em></p>
+          <p>Locally owned property management and leasing, led by Jennifer Tapia.</p>
+          <div class="socials">
+            <a href="https://www.facebook.com/people/Verdant-Properties/61568120027962/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H8v3h2.5V21z"/></svg></a>
+            <a href="https://www.instagram.com/jennifer.myrealtor/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r=".6" fill="currentColor"/></svg></a>
+            <a href="https://www.youtube.com/@VerdantProperties" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4a2.5 2.5 0 0 0-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8a2.5 2.5 0 0 0 1.8 1.8c1.6.4 7.8.4 7.8.4s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8c.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8zM10 15V9l5.2 3z"/></svg></a>
+          </div>
+        </div>
         <div>
-          <img src="assets/img/logo.webp" alt="Verdant Properties logo" class="footer-logo" />
-          <p class="footer-tagline">Property management with a personal touch.</p>
+          <h4>Explore</h4>
+          <ul role="list">
+            <li><a href="listings.html">Residences</a></li>
+            <li><a href="owners.html">Property owners</a></li>
+            <li><a href="about.html">About Jenn</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Clients</h4>
+          <ul role="list">
+            <li><a href="https://verdantprop.app.doorloop.com/auth/login" target="_blank" rel="noopener">Owner portal</a></li>
+            <li><a href="https://verdantprop.app.doorloop.com/auth/login" target="_blank" rel="noopener">Tenant portal</a></li>
+            <li><a href="listings.html#faq">Renter FAQ</a></li>
+            <li><a href="assets/docs/path-to-success-landlord-guide.pdf" target="_blank" rel="noopener">Free landlord guide</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <ul role="list">
+            <li><a href="tel:+19109226519">(910) 922-6519</a></li>
+            <li><a href="mailto:verdantprop1@gmail.com">verdantprop1@gmail.com</a></li>
+            <li><a href="https://calendar.app.google/aWUisd1YZVH4zqXaA" target="_blank" rel="noopener">Book an appointment</a></li>
+            <li>Fayetteville, NC</li>
+          </ul>
         </div>
       </div>
-      <nav class="footer-nav" aria-label="Footer">
-        <a href="index.html#services">Services</a>
-        <a href="listings.html">Listings</a>
-        <a href="index.html#landlords">Landlords</a>
-        <a href="index.html#renters">Renters</a>
-        <a href="index.html#about">About</a>
-        <a href="index.html#contact">Contact</a>
-      </nav>
+      <div class="footer-mark" aria-hidden="true"><svg class="leaf" viewBox="0 0 48 58"><use href="#leaf"/></svg><span>VERDANT</span></div>
       <div class="footer-bottom">
-        <p>© <span id="year"></span> Verdant Properties. NC Firm License #C40094. All rights reserved.</p>
+        <p>&copy; <span data-year></span> Verdant Properties &middot; NC Real Estate Firm License #C40094</p>
+        <span class="eho"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9 13h6M9 16h6"/></svg>Equal Housing Opportunity</span>
       </div>
     </div>
   </footer>
 
-  <script src="js/main.js" defer></script>
+  <script src="data/listings.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/listings.js"></script>
 </body>
 </html>

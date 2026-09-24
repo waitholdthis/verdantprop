@@ -2,27 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Page not found — Verdant Properties</title>
-  <meta name="theme-color" content="#1B4D3E" />
-  <link rel="canonical" href="https://www.verdantprop.com/" />
-  <link rel="icon" href="assets/img/logo.webp" type="image/webp" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Page not found | Verdant Properties</title>
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#0b231b" />
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/styles.css" />
 </head>
-<body>
-  <main class="section">
-    <div class="container">
-      <div class="reveal" style="text-align:center; padding-block: clamp(5rem, 10vw, 7rem);">
-        <img src="assets/img/logo.webp" alt="Verdant Properties logo" style="height:44px; margin-inline:auto; margin-bottom:1.6rem;" />
-        <h1 style="font-size: clamp(2.2rem, 4.6vw, 4.2rem); margin-bottom:1rem;">Let’s find the right page.</h1>
-        <p style="color: var(--body); max-width: 42ch; margin-inline:auto; font-size: 1.06rem;">This address isn’t available. You can return to the homepage or contact us directly.</p>
-        <div style="margin-top:2rem; display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
-          <a class="btn btn-primary" href="index.html">Return home</a>
-          <a class="btn btn-secondary" href="index.html#contact">Contact us</a>
-        </div>
+<body class="dark on-dark">
+  <main class="lost">
+    <div>
+      <svg class="leaf leaf-draw" viewBox="0 0 48 58" aria-hidden="true">
+        <defs><clipPath id="c404"><circle cx="24" cy="24" r="21"/></clipPath></defs>
+        <g fill="none" stroke="currentColor" stroke-linecap="round">
+          <circle cx="24" cy="24" r="21" pathLength="1"/>
+          <path d="M24 12V56" pathLength="1"/>
+          <path clip-path="url(#c404)" d="M24 12 12 0M24 12 36 0M24 24 6 6M24 24 42 6M24 36 3 15M24 36 45 15" pathLength="1"/>
+        </g>
+      </svg>
+      <p class="eyebrow eyebrow--plain" style="justify-content:center">Error 404</p>
+      <h1 class="display display--lg" style="margin-top:1.4rem">This path is <em>overgrown.</em></h1>
+      <p class="lede">The page you&rsquo;re looking for has moved or no longer exists. Let&rsquo;s get you back on track.</p>
+      <div class="cta-actions">
+        <a class="btn btn--light" href="/">Return home</a>
+        <a class="btn btn--outline-light" href="/listings.html">View residences</a>
       </div>
     </div>
   </main>
