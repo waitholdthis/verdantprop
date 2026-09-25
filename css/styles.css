@@ -287,30 +287,24 @@ body.nav-open .site-header .brand { color: var(--on-dark); position: relative; z
   overflow: hidden;
 }
 .hero-media { position: absolute; inset: 0; z-index: -2; overflow: hidden; }
-/* Grade the daylight photo toward the brand: cool the sky into deep green, keep the brick warm. */
-.hero-media::after {
-  content: ""; position: absolute; inset: 0;
-  background: linear-gradient(180deg, var(--forest-800) 0%, rgba(16, 48, 42, .55) 45%, rgba(16, 48, 42, 0) 70%);
-  mix-blend-mode: color; opacity: .85;
-}
 .hero-media img {
   width: 100%; height: 108%; object-fit: cover; object-position: 70% 62%;
-  filter: saturate(.78) contrast(1.1) brightness(.95) sepia(.05);
-  transform: scale(1.12); animation: hero-in 2.8s var(--ease) forwards;
-  will-change: transform;
+  /* True color, no grade. */
+  transform: scale(1.08); animation: hero-in 2.4s var(--ease) forwards;
+  backface-visibility: hidden;
 }
 @keyframes hero-in { to { transform: scale(1); } }
 .hero::before {
   content: ""; position: absolute; inset: 0; z-index: -1;
   background:
-    linear-gradient(180deg, rgba(7, 23, 15, .6) 0%, rgba(7, 23, 15, .12) 30%, rgba(7, 23, 15, .2) 62%, rgba(7, 23, 15, .92) 100%),
-    linear-gradient(90deg, rgba(11, 35, 27, .9) 0%, rgba(11, 35, 27, .7) 30%, rgba(11, 35, 27, .15) 58%, rgba(11, 35, 27, 0) 72%),
-    var(--grain);
+    /* Neutral shading only where text sits: header, headline column, and the bottom bar. */
+    linear-gradient(180deg, rgba(0, 0, 0, .45) 0%, rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, 0) 64%, rgba(0, 0, 0, .7) 100%),
+    linear-gradient(90deg, rgba(0, 0, 0, .78) 0%, rgba(0, 0, 0, .62) 30%, rgba(0, 0, 0, .28) 48%, rgba(0, 0, 0, 0) 62%);
   mix-blend-mode: normal;
 }
 @media (max-width: 860px) {
   .hero-media img { object-position: 58% 40%; }
-  .hero-media::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, rgba(7, 23, 15, .35), rgba(7, 23, 15, .72) 45%, rgba(7, 23, 15, .8)); }
+  .hero-media::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, rgba(0, 0, 0, .3), rgba(0, 0, 0, .55) 45%, rgba(0, 0, 0, .7)); }
 }
 .hero-inner { align-self: end; padding-top: 9rem; padding-bottom: clamp(2.5rem, 6vw, 4.5rem); }
 .hero-kicker { display: flex; align-items: center; gap: 1rem; margin-bottom: clamp(1.5rem, 3vw, 2.4rem); }
@@ -389,7 +383,7 @@ body.nav-open .site-header .brand { color: var(--on-dark); position: relative; z
 .manifesto-text .mw.on { opacity: 1; }
 .manifesto-text em { color: var(--forest); }
 .manifesto-sign { display: flex; align-items: center; gap: 1.2rem; margin-top: clamp(2rem, 4vw, 3.2rem); }
-.manifesto-sign img { width: 3.6rem; height: 3.6rem; border-radius: 50%; object-fit: cover; object-position: 50% 18%; }
+.manifesto-sign img { width: 3.6rem; height: 3.6rem; border-radius: 50%; object-fit: cover; }
 .manifesto-sign strong { display: block; font-weight: 500; color: var(--ink); }
 .manifesto-sign span { font-size: .88rem; color: var(--muted); }
 .manifesto-aside { display: grid; align-content: start; gap: 1.4rem; }
@@ -569,8 +563,15 @@ body.nav-open .site-header .brand { color: var(--on-dark); position: relative; z
 /* ---------- Process (sticky) ---------- */
 .process-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: clamp(2rem, 7vw, 7rem); }
 .process-sticky { position: sticky; top: 8rem; align-self: start; display: grid; gap: 1.6rem; }
-.process-big { font-family: var(--serif); font-size: clamp(6rem, 4rem + 9vw, 13rem); line-height: .8; color: var(--forest); letter-spacing: -0.04em; }
-.process-big sup { font-size: .22em; letter-spacing: .1em; vertical-align: top; font-family: var(--sans); color: var(--brass); margin-left: .3rem; }
+.payday {
+  display: grid; grid-template-columns: auto 1fr; gap: 1.1rem; align-items: start;
+  padding: 1.4rem 1.5rem; background: var(--bone); border: 1px solid var(--line); border-left: 3px solid var(--brass);
+}
+.payday-ico { width: 2.2rem; height: 2.2rem; color: var(--forest); margin-top: .2rem; }
+.payday-k { font-size: .7rem; letter-spacing: .26em; text-transform: uppercase; font-weight: 500; color: var(--brass); }
+.payday-v { font-family: var(--serif); font-size: clamp(2rem, 1.6rem + 1.4vw, 2.8rem); line-height: 1; color: var(--ink); margin: .35rem 0 .5rem; }
+.payday-v em { color: var(--forest); }
+.payday-note { font-size: .92rem; line-height: 1.5; color: var(--body); max-width: 34ch; }
 .steps { counter-reset: s; }
 .step { position: relative; display: grid; grid-template-columns: 4.5rem 1fr; gap: 1.2rem; padding: 2rem 0 2.4rem; border-top: 1px solid var(--line-strong); }
 .step:last-child { border-bottom: 1px solid var(--line-strong); }
@@ -586,7 +587,7 @@ body.nav-open .site-header .brand { color: var(--on-dark); position: relative; z
 .jenn { background: var(--bone); overflow: hidden; }
 .jenn-grid { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1fr); gap: clamp(2.5rem, 7vw, 7rem); align-items: center; }
 .jenn-portrait { position: relative; max-width: 30rem; }
-.jenn-portrait .arch img { object-position: 50% 20%; }
+.jenn-portrait .arch img { object-position: 50% 50%; }
 .jenn-portrait figcaption { margin-top: 2rem; display: flex; justify-content: space-between; gap: 1rem; font-size: .8rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
 .jenn-quote { font-family: var(--serif); font-size: clamp(1.8rem, 1.2rem + 2.2vw, 3.2rem); line-height: 1.12; color: var(--ink); margin: 1.5rem 0 1.8rem; text-wrap: balance; }
 .jenn-quote::before { content: "\201C"; display: block; font-size: 2.2em; line-height: .6; color: var(--brass); height: .45em; }
@@ -811,7 +812,7 @@ body.nav-open .site-header .brand { color: var(--on-dark); position: relative; z
 .aside-card .dot.leased { color: var(--muted); }
 .aside-card h3 { font-family: var(--serif); font-size: 1.9rem; line-height: 1.05; }
 .aside-agent { display: flex; align-items: center; gap: 1rem; padding-top: 1.2rem; border-top: 1px solid var(--line); }
-.aside-agent img { width: 3.4rem; height: 3.4rem; border-radius: 50%; object-fit: cover; object-position: 50% 18%; }
+.aside-agent img { width: 3.4rem; height: 3.4rem; border-radius: 50%; object-fit: cover; }
 .aside-agent strong { display: block; font-weight: 500; color: var(--ink); }
 .aside-agent a { font-size: .9rem; color: var(--forest); }
 .verified { display: flex; gap: .8rem; align-items: start; font-size: .85rem; line-height: 1.5; padding: 1rem; background: var(--paper); border: 1px solid var(--line); }
@@ -1217,3 +1218,22 @@ body.nav-open .site-header .brand { color: var(--on-dark); position: relative; z
 /* Never on touch devices or small screens — there's nothing to scan with. */
 @media (hover: none), (pointer: coarse), (max-width: 899px) { .qr { display: none; } }
 @media print { .qr { display: none; } }
+
+/* Outlined hero button stays legible over the bright facade. */
+.hero .btn--outline-light { background: rgba(0, 0, 0, .38); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border-color: rgba(255, 255, 255, .55); }
+.hero .btn--outline-light:hover { background: transparent; }
+.hero h1, .hero .lede { text-shadow: 0 2px 24px rgba(0, 0, 0, .35); }
+
+/* Portraits: clean rectangle with an offset brass frame (arches are reserved for places). */
+.portrait { position: relative; isolation: isolate; max-width: 30rem; margin-right: 18px; margin-bottom: 18px; }
+.portrait::before {
+  content: ""; position: absolute; inset: 18px -18px -18px 18px; z-index: -1;
+  border: 1px solid var(--brass); pointer-events: none;
+}
+.portrait-img { aspect-ratio: 4 / 5; overflow: hidden; background: var(--stone); box-shadow: 0 30px 60px -30px rgba(11, 35, 27, .45); }
+.portrait-img img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
+.js .portrait-img.reveal-mask.is-in { clip-path: inset(0); }
+@media (max-width: 700px) {
+  .portrait { margin-right: 12px; margin-bottom: 12px; }
+  .portrait::before { inset: 12px -12px -12px 12px; }
+}
