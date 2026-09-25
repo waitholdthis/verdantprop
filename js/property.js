@@ -131,7 +131,7 @@
           '<a class="btn btn--block" href="' + SCHEDULER + '" target="_blank" rel="noopener">Schedule a showing ' + V.icon.arrow + '</a>' +
           '<a class="btn btn--ghost btn--block" href="' + inquireHref + '">Ask a question</a>' +
           '<div class="verified">' + V.icon.shield + '<span><strong style="color:var(--ink);font-weight:500">Verified listing.</strong> Managed by Verdant Properties, NC Firm #C40094. We will never ask you to wire money or pay before touring.</span></div>' +
-          '<div class="aside-agent"><img src="assets/img/jennifer-tapia.webp" alt="" loading="lazy"><div><strong>Jennifer Tapia</strong><a href="tel:+19109226519">(910) 922-6519</a></div></div>' +
+          '<div class="aside-agent"><img src="assets/img/jenn-tapia-avatar.webp" alt="" width="54" height="54" loading="lazy"><div><strong>Jennifer Tapia</strong><a href="tel:+19109226519">(910) 922-6519</a></div></div>' +
         '</aside>' +
       '</div></section>' +
       '<section class="section bg-bone" data-similar hidden aria-labelledby="similar-title"><div class="container">' +
