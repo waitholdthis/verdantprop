@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Du+OJKJSbdUgz5nrHeWWINvez6XKDDU/tyj/5c2uvwo=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://nominatim.openstreetmap.org https://router.project-osrm.org https://overpass-api.de https://overpass.private.coffee https://overpass.kumi.systems; frame-src https:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Listing Studio | Verdant Properties</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#0b231b" />
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body class="admin">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs><clipPath id="leaf-clip"><circle cx="24" cy="24" r="21"/></clipPath></defs>
+    <symbol id="leaf" viewBox="0 0 48 58">
+      <g fill="none" stroke="currentColor" stroke-linecap="round">
+        <circle cx="24" cy="24" r="21"/>
+        <path d="M24 12V56"/>
+        <path clip-path="url(#leaf-clip)" d="M24 12 12 0M24 12 36 0M24 24 6 6M24 24 42 6M24 36 3 15M24 36 45 15"/>
+      </g>
+    </symbol>
+  </svg>
+
+  <aside class="ad-side on-dark">
+    <a class="brand" href="admin.html#/" aria-label="Listing Studio home">
+      <svg class="leaf" viewBox="0 0 48 58" aria-hidden="true"><use href="#leaf"/></svg>
+      <span class="brand-word"><b>VERDANT</b><small>LISTING STUDIO</small></span>
+    </a>
+    <nav class="ad-nav" aria-label="Studio">
+      <a href="#/" data-route="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7"/><rect x="13.5" y="3.5" width="7" height="7"/><rect x="3.5" y="13.5" width="7" height="7"/><rect x="13.5" y="13.5" width="7" height="7"/></svg>All listings</a>
+      <a href="#/new" data-route="new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New listing</a>
+      <a href="index.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></svg>View website</a>
+    </nav>
+    <div class="ad-side-foot">
+      <button class="ad-link" type="button" data-export>Export listings (JSON)</button>
+      <label class="ad-link">Import listings<input type="file" accept="application/json" data-import hidden /></label>
+      <p class="ad-mode"><span class="ad-dot"></span>Preview mode &middot; saved on this device</p>
+    </div>
+  </aside>
+
+  <main class="ad-main" id="main">
+    <div class="ad-banner" role="note">
+      <strong>Preview mode.</strong> Listings you create here are saved in this browser and appear on the site when viewed on this device. Connect a hosting backend to publish them for everyone &mdash; see <code>js/data.js</code>.
+    </div>
+    <div data-view></div>
+  </main>
+
+  <div class="ad-toast" role="status" aria-live="polite" data-toast></div>
+
+  <template id="tpl-list">
+    <header class="ad-head">
+      <div>
+        <p class="eyebrow">Listing Studio</p>
+        <h1 class="title title--sm">Your <em>residences</em></h1>
+      </div>
+      <a class="btn" href="#/new">New listing <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></a>
+    </header>
+    <div class="ad-stats" data-stats></div>
+    <div class="ad-toolbar">
+      <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.4-4.4"/></svg><span class="sr-only">Search listings</span><input type="search" placeholder="Search listings" data-search /></label>
+      <div class="ad-seg" role="radiogroup" aria-label="Filter by status" data-status-filter>
+        <label><input type="radio" name="sf" value="" checked /><span>All</span></label>
+        <label><input type="radio" name="sf" value="available" /><span>Available</span></label>
+        <label><input type="radio" name="sf" value="pending" /><span>Pending</span></label>
+        <label><input type="radio" name="sf" value="leased" /><span>Leased</span></label>
+        <label><input type="radio" name="sf" value="draft" /><span>Drafts</span></label>
+      </div>
+    </div>
+    <div class="ad-table" data-rows></div>
+  </template>
+
+  <template id="tpl-edit">
+    <form class="ad-edit" data-form novalidate>
+      <header class="ad-head">
+        <div>
+          <a class="crumbs" href="#/">&larr; All listings</a>
+          <h1 class="title title--sm" data-edit-title>New <em>listing</em></h1>
+        </div>
+        <div class="row">
+          <button class="btn btn--ghost" type="button" data-delete hidden>Delete</button>
+          <button class="btn btn--ghost" type="button" data-view-live>Preview page</button>
+          <button class="btn" type="submit">Save listing</button>
+        </div>
+      </header>
+
+      <div class="ad-edit-grid">
+        <div class="ad-cols">
+          <section class="ad-card">
+            <h2>The basics</h2>
+            <div class="form-grid">
+              <div class="field field--full"><label for="e-title">Listing name</label><input id="e-title" name="title" placeholder="e.g. The Laurel" /></div>
+              <div class="field field--full"><label for="e-address">Street address *</label><input id="e-address" name="address" required placeholder="1010 Laurel St" /></div>
+              <div class="field"><label for="e-city">City</label><input id="e-city" name="city" value="Fayetteville" /></div>
+              <div class="field ad-2"><div class="field"><label for="e-state">State</label><input id="e-state" name="state" value="NC" maxlength="2" /></div><div class="field"><label for="e-zip">ZIP</label><input id="e-zip" name="zip" inputmode="numeric" maxlength="10" /></div></div>
+              <div class="field"><label for="e-neighborhood">Neighborhood</label><input id="e-neighborhood" name="neighborhood" list="hoods" placeholder="Haymount, Hope Mills&hellip;" /><datalist id="hoods"><option>Fayetteville</option><option>Haymount</option><option>Fort Bragg</option><option>Hope Mills</option><option>Spring Lake</option><option>Raeford</option><option>Cumberland County</option></datalist></div>
+              <div class="field field--full"><span class="label">Listing type <span class="ad-hint">&mdash; shown as a badge on every card</span></span>
+                <div class="ad-seg ad-seg--lg"><label><input type="radio" name="type" value="rent" checked /><span>For rent</span></label><label><input type="radio" name="type" value="lease" /><span>For lease</span></label><label><input type="radio" name="type" value="sale" /><span>For sale</span></label></div>
+                <p class="ad-hint" data-type-hint></p>
+              </div>
+              <div class="field"><label for="e-kind">Property type</label><select id="e-kind" name="propertyType"><option value="">Select one</option><option value="house">House</option><option value="townhome">Townhome</option><option value="apartment">Apartment</option><option value="condo">Condo</option><option value="duplex">Duplex / multi-family</option><option value="commercial">Commercial building</option><option value="office">Office</option><option value="retail">Retail</option><option value="land">Land</option></select></div>
+              <div class="field" data-unit-field hidden><label for="e-unit">Lease rate is</label><select id="e-unit" name="priceUnit"><option value="mo">Per month</option><option value="yr">Per year</option><option value="sfyr">Per sq ft, per year</option></select></div>
+              <div class="field"><label for="e-price" data-price-label>Monthly rent ($)</label><input id="e-price" name="price" type="number" min="0" step="25" inputmode="numeric" /></div>
+              <div class="field"><label for="e-status">Status</label><select id="e-status" name="status"><option value="available">Available</option><option value="coming">Coming soon</option><option value="pending">Application pending</option><option value="leased">Leased</option><option value="sold">Sold</option></select></div>
+            </div>
+          </section>
+
+          <section class="ad-card">
+            <h2>Details</h2>
+            <div class="form-grid ad-grid-3">
+              <div class="field"><label for="e-beds">Bedrooms</label><input id="e-beds" name="beds" type="number" min="0" step="1" /></div>
+              <div class="field"><label for="e-baths">Bathrooms</label><input id="e-baths" name="baths" type="number" min="0" step="0.5" /></div>
+              <div class="field"><label for="e-sqft">Square feet</label><input id="e-sqft" name="sqft" type="number" min="0" step="10" /></div>
+              <div class="field"><label for="e-available">Available on</label><input id="e-available" name="available" type="date" /></div>
+              <div class="field"><label for="e-deposit">Security deposit ($)</label><input id="e-deposit" name="deposit" type="number" min="0" step="25" /></div>
+              <div class="field"><label for="e-lease">Lease term</label><input id="e-lease" name="leaseTerm" placeholder="12 months" /></div>
+              <div class="field"><label for="e-pets">Pets</label><input id="e-pets" name="pets" placeholder="Cats &amp; small dogs OK" /></div>
+              <div class="field ad-span-2"><label for="e-parking">Parking</label><input id="e-parking" name="parking" placeholder="Attached 2-car garage" /></div>
+            </div>
+          </section>
+
+          <section class="ad-card">
+            <h2>Story &amp; features</h2>
+            <div class="field field--full"><label for="e-desc">Description</label><textarea id="e-desc" name="description" rows="7" placeholder="Describe the home, the light, the neighborhood&hellip;"></textarea></div>
+            <div class="field field--full mt-2">
+              <label for="e-feature">Features <span class="ad-hint">press Enter to add</span></label>
+              <div class="ad-tags" data-tags><input id="e-feature" placeholder="Fenced backyard" data-tag-input /></div>
+            </div>
+          </section>
+
+          <section class="ad-card">
+            <div class="ad-card-head"><h2>Photos</h2><span class="ad-hint" data-photo-count>0 photos</span></div>
+            <label class="ad-drop" data-drop>
+              <input type="file" accept="image/*" multiple hidden data-photo-input />
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M3.5 8h3.3l1.7-2.5h7l1.7 2.5h3.3v11h-17z"/><circle cx="12" cy="13" r="3.6"/></svg>
+              <strong>Drop photos here or <u>browse</u></strong>
+              <span>JPG, PNG, WebP &middot; optimized automatically &middot; drag to reorder &middot; first photo is the cover</span>
+            </label>
+            <ul class="ad-photos" role="list" data-photos></ul>
+          </section>
+
+          <section class="ad-card">
+            <h2>Video tour</h2>
+            <div class="ad-seg" data-video-mode><label><input type="radio" name="videoMode" value="url" checked /><span>Link (YouTube, Vimeo)</span></label><label><input type="radio" name="videoMode" value="file" /><span>Upload a file</span></label><label><input type="radio" name="videoMode" value="none" /><span>None</span></label></div>
+            <div class="mt-2" data-video-url><div class="field"><label for="e-video">Video link</label><input id="e-video" name="videoUrl" type="url" placeholder="https://youtu.be/&hellip;" /></div></div>
+            <div class="mt-2" data-video-file hidden>
+              <label class="ad-drop ad-drop--sm"><input type="file" accept="video/*" hidden data-video-input /><strong>Choose a video file</strong><span>MP4 or MOV &middot; for large files, a YouTube or Vimeo link loads faster for visitors</span></label>
+            </div>
+            <div class="media-frame mt-2" data-video-preview hidden></div>
+          </section>
+
+          <section class="ad-card">
+            <h2>3D walk-through</h2>
+            <p class="ad-hint" style="margin-bottom:1rem">Paste the share link from Matterport, Zillow 3D Home, Kuula, iGUIDE, CloudPano, or any tour that can be embedded.</p>
+            <div class="field"><label for="e-tour">Tour link</label><input id="e-tour" name="tourUrl" type="url" placeholder="https://my.matterport.com/show/?m=&hellip;" /></div>
+            <p class="ad-hint mt-1" data-tour-status></p>
+            <div class="media-frame mt-2" data-tour-preview hidden></div>
+          </section>
+
+          <section class="ad-card">
+            <div class="ad-card-head"><h2>Map location</h2><span class="ad-hint" data-geo-status></span></div>
+            <p class="ad-hint" style="margin-bottom:1rem">Powers the neighborhood explorer, travel times, and the Residences map. We look up the address automatically; drag the pin to fine-tune.</p>
+            <button class="btn btn--ghost btn--sm" type="button" data-geo-find>Find address on map</button>
+            <div class="ad-map mt-2" data-geo-map></div>
+            <input type="hidden" name="lat" /><input type="hidden" name="lng" />
+          </section>
+        </div>
+
+        <aside class="ad-aside">
+          <section class="ad-card">
+            <h2>Publishing</h2>
+            <label class="ad-switch"><input type="checkbox" name="published" checked /><span></span>Visible on website</label>
+            <label class="ad-switch"><input type="checkbox" name="featured" /><span></span>Feature on home page</label>
+          </section>
+          <section class="ad-card">
+            <h2>Card preview</h2>
+            <div data-preview></div>
+          </section>
+          <button class="btn btn--block" type="submit">Save listing</button>
+        </aside>
+      </div>
+    </form>
+  </template>
+
+  <script src="data/listings.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/explore.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
