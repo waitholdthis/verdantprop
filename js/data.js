@@ -52,6 +52,42 @@
     deleteMedia: (id) => tx('media', 'readwrite', (s) => s.delete(id))
   };
 
+  // Imported files are untrusted: keep only known fields, coerce types, and allow only https media.
+  function sanitize(raw) {
+    if (!raw || typeof raw !== 'object' || typeof raw.id !== 'string' || !/^[\w-]{1,80}$/.test(raw.id)) return null;
+    const str = (v, max) => (typeof v === 'string' ? v.slice(0, max || 200) : '');
+    const num = (v) => (v === null || v === '' || v === undefined || !isFinite(Number(v)) ? null : Number(v));
+    const oneOf = (v, list, dflt) => (list.includes(v) ? v : dflt);
+    const httpsUrl = (v) => (typeof v === 'string' && /^https:\/\/[^\s"'<>]+$/i.test(v) ? v.slice(0, 2000) : '');
+    const lat = num(raw.lat), lng = num(raw.lng);
+    return {
+      id: raw.id,
+      title: str(raw.title), address: str(raw.address), city: str(raw.city, 80), state: str(raw.state, 2).toUpperCase(), zip: str(raw.zip, 10),
+      neighborhood: str(raw.neighborhood, 80),
+      type: oneOf(raw.type, ['rent', 'lease', 'sale'], 'rent'),
+      propertyType: oneOf(raw.propertyType, ['', 'house', 'townhome', 'apartment', 'condo', 'duplex', 'commercial', 'office', 'retail', 'land'], ''),
+      priceUnit: oneOf(raw.priceUnit, ['', 'mo', 'yr', 'sfyr'], ''),
+      status: oneOf(raw.status, ['available', 'coming', 'pending', 'leased', 'sold'], 'available'),
+      price: num(raw.price), beds: num(raw.beds), baths: num(raw.baths), sqft: num(raw.sqft), deposit: num(raw.deposit),
+      available: /^\d{4}-\d{2}-\d{2}$/.test(raw.available || '') ? raw.available : '',
+      leaseTerm: str(raw.leaseTerm, 80), pets: str(raw.pets, 120), parking: str(raw.parking, 120),
+      description: str(raw.description, 8000),
+      features: Array.isArray(raw.features) ? raw.features.map((f) => str(f, 120)).filter(Boolean).slice(0, 60) : [],
+      photos: Array.isArray(raw.photos) ? raw.photos.map(httpsUrl).filter(Boolean).slice(0, 80) : [],
+      video: raw.video && httpsUrl(raw.video.url) ? { url: httpsUrl(raw.video.url) } : null,
+      tour: raw.tour && httpsUrl(raw.tour.url) ? { url: httpsUrl(raw.tour.url) } : null,
+      lat: lat !== null && Math.abs(lat) <= 90 ? lat : null,
+      lng: lng !== null && Math.abs(lng) <= 180 ? lng : null,
+      nearby: Array.isArray(raw.nearby) ? raw.nearby.filter((p) => p && isFinite(p.lat) && isFinite(p.lng)).slice(0, 200).map((p) => ({
+        name: str(p.name, 120), cat: oneOf(p.cat, ['dining', 'shopping', 'schools', 'parks', 'health'], 'parks'), type: str(p.type, 60), lat: Number(p.lat), lng: Number(p.lng)
+      })) : [],
+      featured: raw.featured === true,
+      published: raw.published !== false,
+      createdAt: num(raw.createdAt) || Date.now(),
+      updatedAt: Date.now()
+    };
+  }
+
   const seed = () => (window.VERDANT_SEED || []).map((l) => Object.assign({ source: 'seed' }, l));
 
   const uid = (prefix) => (prefix || 'l') + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -117,8 +153,12 @@
     async importJSON(text) {
       const arr = JSON.parse(text);
       if (!Array.isArray(arr)) throw new Error('Expected a JSON array of listings');
-      for (const l of arr) { if (l && l.id) await adapter.putListing(Object.assign({}, l, { updatedAt: l.updatedAt || Date.now() })); }
-      return arr.length;
+      let n = 0;
+      for (const raw of arr) {
+        const l = sanitize(raw);
+        if (l) { await adapter.putListing(l); n++; }
+      }
+      return n;
     }
   };
 
@@ -283,9 +323,16 @@
         const css = document.createElement('link');
         css.rel = 'stylesheet';
         css.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+        css.integrity = 'sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==';
+        css.crossOrigin = 'anonymous';
+        css.referrerPolicy = 'no-referrer';
         document.head.appendChild(css);
         const s = document.createElement('script');
         s.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+        // Integrity hash: the browser refuses the file if the CDN ever serves altered code.
+        s.integrity = 'sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==';
+        s.crossOrigin = 'anonymous';
+        s.referrerPolicy = 'no-referrer';
         s.onload = () => resolve(window.L);
         s.onerror = () => reject(new Error('Map library failed to load'));
         document.head.appendChild(s);

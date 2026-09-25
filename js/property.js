@@ -196,7 +196,7 @@
     /* ---------- 3D tour loads on demand ---------- */
     const tf = mount.querySelector('[data-tour]');
     if (tf) tf.querySelector('.tour-launch').addEventListener('click', () => {
-      tf.innerHTML = '<iframe src="' + esc(tf.dataset.tour) + '" title="3D walk-through of ' + esc(l.address) + '" allow="fullscreen; xr-spatial-tracking; vr; gyroscope; accelerometer" allowfullscreen></iframe>';
+      tf.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation" referrerpolicy="strict-origin-when-cross-origin" src="' + esc(tf.dataset.tour) + '" title="3D walk-through of ' + esc(l.address) + '" allow="fullscreen; xr-spatial-tracking; vr; gyroscope; accelerometer" allowfullscreen></iframe>';
     });
 
     /* ---------- Lightbox ---------- */

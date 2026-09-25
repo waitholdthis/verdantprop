@@ -66,6 +66,9 @@
   };
 
   async function fetchPlaces(c) {
+    // Coordinates are interpolated into the query, so accept only real numbers.
+    c = { lat: Number(c.lat), lng: Number(c.lng) };
+    if (!isFinite(c.lat) || !isFinite(c.lng) || Math.abs(c.lat) > 90 || Math.abs(c.lng) > 180) throw new Error('Invalid coordinates');
     const key = 'verdant:poi:' + c.lat.toFixed(4) + ',' + c.lng.toFixed(4);
     const cached = store.get(key);
     if (cached && Date.now() - cached.t < WEEK) return cached.items;

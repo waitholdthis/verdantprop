@@ -330,7 +330,7 @@
         tStatus.innerHTML = 'Detected: <strong style="color:var(--forest);font-weight:500">' + esc(t.provider) + '</strong>. If the preview stays blank, the provider may block embedding&mdash;use its &ldquo;embed&rdquo; or &ldquo;share&rdquo; link instead.';
         if (tPrev.dataset.src !== t.src) {
           tPrev.dataset.src = t.src;
-          tPrev.innerHTML = '<iframe src="' + esc(t.src) + '" title="3D tour preview" allow="fullscreen; xr-spatial-tracking" allowfullscreen></iframe>';
+          tPrev.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation" referrerpolicy="strict-origin-when-cross-origin" src="' + esc(t.src) + '" title="3D tour preview" allow="fullscreen; xr-spatial-tracking" allowfullscreen></iframe>';
         }
         tPrev.hidden = false;
       }
