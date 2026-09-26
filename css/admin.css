@@ -210,3 +210,11 @@ body.admin { display: grid; grid-template-columns: 17rem minmax(0, 1fr); min-hei
 .ad-how summary { cursor: pointer; color: var(--forest); font-weight: 500; }
 .ad-how ol { margin: .5rem 0 0; padding-left: 1.2rem; display: grid; gap: .25rem; }
 .ad-how a { color: var(--forest); text-decoration: underline; }
+.ad-nb { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: .8rem 1.5rem; margin-top: .8rem; max-height: 22rem; overflow: auto; padding-right: .4rem; }
+.ad-nb fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: .15rem; align-content: start; }
+.ad-nb legend { font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-bottom: .3rem; }
+.ad-nb-item { display: flex; align-items: center; gap: .5rem; font-size: .88rem; color: var(--ink); cursor: pointer; padding: .15rem 0; }
+.ad-nb-item input { accent-color: var(--forest); }
+.ad-nb-item input:not(:checked) + span { color: var(--muted); text-decoration: line-through; }
+.ad-nb-item.is-closed { cursor: default; }
+.ad-nb-item em { font-style: normal; font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; padding: .1rem .4rem; border-radius: 999px; background: var(--stone); color: var(--muted); }
