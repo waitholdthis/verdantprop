@@ -12,6 +12,25 @@
     if (!grid || !form || !V) return;
 
     const all = await V.store.all();
+
+    /* BAH match */
+    const bahBar = document.querySelector('[data-bah-bar]');
+    const bahOnlyEl = bahBar && bahBar.querySelector('[data-bah-only]');
+    const bahNote = bahBar && bahBar.querySelector('[data-bah-note]');
+    const syncBahNote = () => {
+      if (!bahBar) return;
+      const v = V.bah.get();
+      bahOnlyEl.disabled = !v;
+      if (!v) bahOnlyEl.checked = false;
+      bahNote.innerHTML = v ? 'Your ' + V.bah.YEAR + ' BAH at Fort Bragg: <b>' + V.fmt.money(V.bah.rate()) + '/mo</b> (' + v.grade + (v.deps ? ', with dependents' : ', without dependents') + '). BAH is meant to cover rent <em>and</em> utilities.' : 'Choose your pay grade to see how every home compares. Nothing is sent anywhere; it stays on this device.';
+    };
+    if (bahBar && V.bah) {
+      bahBar.querySelector('[data-bah-controls]').innerHTML = V.bah.picker('bah-list');
+      V.bah.bind(bahBar);
+      bahOnlyEl.addEventListener('change', () => render());
+      document.addEventListener('verdant:bah', () => { syncBahNote(); render(); });
+      syncBahNote();
+    }
     const params = new URLSearchParams(location.search);
     [...form.elements].forEach((el) => {
       if (!el.name || !params.has(el.name)) return;
@@ -81,7 +100,9 @@
       const q = (f.q || '').trim().toLowerCase();
       const savedIds = V.saved.list();
       if (savedCount) savedCount.textContent = savedIds.length ? '(' + savedIds.length + ')' : '';
+      const bahOnly = bahOnlyEl && bahOnlyEl.checked && V.bah && V.bah.get();
       let list = all.filter((l) => {
+        if (bahOnly) { const m = V.bah.match(l); if (!m || !m.fits) return false; }
         if (f.saved && !savedIds.includes(l.id)) return false;
         if (f.type && l.type !== f.type) return false;
         if (f.kind && l.propertyType !== f.kind) return false;

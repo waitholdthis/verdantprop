@@ -726,6 +726,16 @@
         ]);
         if (snap && snap.length) { d.nearby = snap; nb.items = snap; drawNearby(); }
       }
+      // Record drive times to each Fort Bragg gate (shown on cards and the property page).
+      if (d.lat && d.lng && window.VerdantExplore && (moved || !(d.gates && d.gates.length))) {
+        const gt = await Promise.race([window.VerdantExplore.gateTimes({ lat: d.lat, lng: d.lng }).catch(() => null), new Promise((r) => setTimeout(() => r(null), 20000))]);
+        if (gt && gt.length) d.gates = gt;
+      }
+      // Record the FEMA flood zone for this location (kept with the listing, like nearby places).
+      if (d.lat && d.lng && (moved || !d.flood)) {
+        const fz = await Promise.race([V.flood.lookup(d.lat, d.lng).catch(() => null), new Promise((r) => setTimeout(() => r(null), 20000))]);
+        if (fz) d.flood = fz;
+      }
       // Drop a replaced uploaded video
       if (existing && existing.video && existing.video.ref && (!d.video || d.video.ref !== existing.video.ref)) await V.store.deleteMedia(existing.video.ref);
       const keptPano = new Set(((d.pano && d.pano.scenes) || []).map((sc) => sc.ref));

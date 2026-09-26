@@ -5,16 +5,16 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Du+OJKJSbdUgz5nrHeWWINvez6XKDDU/tyj/5c2uvwo=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' blob: https://hazards.fema.gov https://nominatim.openstreetmap.org https://router.project-osrm.org https://overpass-api.de https://overpass.private.coffee https://overpass.kumi.systems; frame-src https:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Residence | Verdant Properties</title>
-  <meta name="description" content="Photos, video, 3D walk-through, and details for a Verdant Properties home in Fayetteville, NC." />
+  <title>Rental Scam Checker: Verify a Fayetteville Listing | Verdant Properties</title>
+  <meta name="description" content="Paste a rental ad or phone number to check it against Verdant Properties listings and common Fort Bragg rental scam warning signs. Runs privately on your device." />
   <meta name="theme-color" content="#0b231b" />
-  <meta property="og:title" content="Residence | Verdant Properties" />
-  <meta property="og:description" content="Photos, video, 3D walk-through, and details for a Verdant Properties home in Fayetteville, NC." />
+  <meta property="og:title" content="Rental Scam Checker: Verify a Fayetteville Listing | Verdant Properties" />
+  <meta property="og:description" content="Paste a rental ad or phone number to check it against Verdant Properties listings and common Fort Bragg rental scam warning signs. Runs privately on your device." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://www.verdantprop.com/listings" />
+  <meta property="og:url" content="https://www.verdantprop.com/verify" />
   <meta property="og:image" content="https://www.verdantprop.com/assets/img/market-house-1600.webp" />
   <meta name="twitter:card" content="summary_large_image" />
-  <link rel="canonical" href="https://www.verdantprop.com/listings" />
+  <link rel="canonical" href="https://www.verdantprop.com/verify" />
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="assets/img/logo.webp" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="css/styles.css" />
   <script>document.documentElement.classList.add('js')</script>
 </head>
-<body class="page-solid has-mobile-bar">
+<body class="page-solid">
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <defs><clipPath id="leaf-clip"><circle cx="24" cy="24" r="21"/></clipPath></defs>
     <symbol id="leaf" viewBox="0 0 48 58">
@@ -44,7 +44,7 @@
         <span class="brand-word"><b>VERDANT</b><small>PROPERTIES</small></span>
       </a>
       <nav class="site-nav" aria-label="Primary">
-        <a href="listings.html" aria-current="page">Residences</a>
+        <a href="listings.html">Residences</a>
         <a href="owners.html">Owners</a>
         <a href="about.html">About</a>
         <a href="contact.html">Contact</a>
@@ -73,24 +73,50 @@
   </div>
 
   <main id="main">
-    <div data-property>
-      <section class="prop-head">
-        <div class="container">
-          <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><a href="listings.html">Residences</a></nav>
-          <div style="min-height:40vh;display:grid;place-items:center" data-loading><p class="caps" style="color:var(--muted)">Loading residence&hellip;</p></div>
+    <section class="page-hero" aria-labelledby="page-title">
+      <div class="container page-hero-grid">
+        <div>
+          <p class="eyebrow reveal">Rental scam checker</p>
+          <h1 class="display display--lg" id="page-title" data-split>Is that listing <em>real?</em></h1>
         </div>
-      </section>
-    </div>
-
-    <div class="lightbox" data-lightbox role="dialog" aria-modal="true" aria-label="Photo gallery" hidden>
-      <div class="lightbox-bar"><span data-lb-count></span><button class="round-btn" data-lb-close aria-label="Close gallery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
-      <div class="lightbox-stage">
-        <button class="round-btn lightbox-nav" data-dir="prev" aria-label="Previous photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 12h17M14 6l6 6-6 6"/></svg></button>
-        <img data-lb-img alt="" />
-        <button class="round-btn lightbox-nav" data-dir="next" aria-label="Next photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 12h17M14 6l6 6-6 6"/></svg></button>
+        <p class="lede reveal">Fayetteville is one of the most targeted rental-scam markets in the country, especially for families on PCS orders. Paste an ad, message, or phone number and we&rsquo;ll check it against our real listings and the warning signs scammers leave behind.</p>
       </div>
-      <div class="lightbox-thumbs" data-lb-thumbs></div>
-    </div>
+    </section>
+
+    <section class="section" style="padding-top:0" aria-label="Check a listing">
+      <div class="container vr-grid">
+        <div>
+          <form class="vr-form reveal" data-verify>
+            <label class="field field--full" for="vr-ad"><span class="label">Paste the ad, message, link, or phone number</span></label>
+            <textarea id="vr-ad" name="ad" rows="9" placeholder="For example: &ldquo;3BR home on Girard Ave, $750/mo. I&rsquo;m deployed overseas so I can&rsquo;t show it, but send the deposit by Zelle and I&rsquo;ll mail you the keys. Text 910-555-0142.&rdquo;"></textarea>
+            <div class="row mt-1">
+              <button class="btn" type="submit">Check this listing <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M3 12h17M14 6l6 6-6 6"/></svg></button>
+              <button class="btn btn--ghost" type="button" data-verify-clear>Clear</button>
+            </div>
+            <p class="form-note mt-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" style="width:1rem;height:1rem;display:inline;vertical-align:-3px;margin-right:.3rem"><rect x="5" y="10.5" width="14" height="10" rx="1.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>Private: the check runs on your device. Nothing you paste is sent to us or anyone else.</p>
+          </form>
+          <div class="vr-out" data-verify-out hidden aria-live="polite"></div>
+        </div>
+
+        <aside class="vr-aside reveal" aria-labelledby="vr-rules">
+          <h2 class="title title--sm" id="vr-rules">Our <em>promises</em></h2>
+          <ul class="vr-promises" role="list">
+            <li>We will <b>never</b> ask you to wire money or pay with Zelle, Cash App, gift cards, or crypto.</li>
+            <li>We will <b>never</b> take a deposit before you&rsquo;ve toured the home (in person or on a live video call with us).</li>
+            <li>Our only phone number is <a href="tel:+19109226519">(910) 922-6519</a> and our email is <a href="mailto:verdantprop1@gmail.com">verdantprop1@gmail.com</a>.</li>
+            <li>Every Verdant home is listed on <a href="listings.html">our Residences page</a>. If it isn&rsquo;t there, it isn&rsquo;t ours.</li>
+          </ul>
+          <h3 class="vr-h">Classic warning signs</h3>
+          <ul class="vr-signs" role="list">
+            <li>The owner is &ldquo;deployed,&rdquo; &ldquo;overseas,&rdquo; or &ldquo;on a mission trip&rdquo;</li>
+            <li>Rent is far below similar homes nearby</li>
+            <li>They&rsquo;ll mail the keys after you pay</li>
+            <li>No application, credit check, or lease</li>
+            <li>Pressure to pay today to &ldquo;hold&rdquo; the home</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer on-dark">
@@ -144,10 +170,7 @@
 
   <script src="data/listings.js"></script>
   <script src="js/data.js"></script>
-  <script src="js/bah.js"></script>
   <script src="js/main.js"></script>
-  <script src="js/explore.js"></script>
-  <script src="js/tour.js"></script>
-  <script src="js/property.js"></script>
+  <script src="js/verify.js"></script>
 </body>
 </html>

@@ -1431,3 +1431,139 @@ body.nav-open .site-header .brand { color: var(--on-dark); position: relative; z
 .sv-frame { aspect-ratio: 16 / 9; }
 .sv-frame .tour-launch { background: radial-gradient(80% 80% at 50% 50%, rgba(63, 116, 98, .55), rgba(7, 23, 15, .96)), var(--grain); }
 @media (max-width: 760px) { .sv-frame { aspect-ratio: 4 / 3; } }
+
+/* ==========================================================================
+   BAH match
+   ========================================================================== */
+.bah-bar {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: .9rem 1.5rem; align-items: center;
+  margin-bottom: clamp(1.6rem, 3vw, 2.4rem); padding: 1.2rem 1.4rem;
+  background: var(--forest-900) var(--grain); color: var(--on-dark-muted); border-left: 3px solid var(--brass);
+}
+.bah-bar .eyebrow { color: var(--brass-light); font-size: .66rem; }
+.bah-bar-title { font-family: var(--serif); font-size: clamp(1.4rem, 1.1rem + 1vw, 1.9rem); line-height: 1.1; color: var(--bone); margin-top: .3rem; }
+.bah-bar-title em { color: var(--brass-light); }
+.bah-note { grid-column: 1 / -1; font-size: .86rem; color: var(--on-dark-muted); }
+.bah-note b { color: var(--bone); font-weight: 500; }
+.bah-picker { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; }
+.bah-picker select {
+  appearance: none; min-width: 9.5rem; padding: .6rem 2.2rem .6rem 1rem; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line-strong); background: var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%231b4d3e' stroke-width='1.4'%3E%3Cpath d='M1 1l5 5 5-5'/%3E%3C/svg%3E") right 1rem center / 10px no-repeat;
+  color: var(--ink); font-size: .9rem;
+}
+.bah-deps { display: inline-flex; align-items: center; gap: .45rem; font-size: .88rem; cursor: pointer; }
+.bah-deps input { accent-color: var(--brass); width: 1rem; height: 1rem; }
+.bah-bar .bah-deps { color: var(--on-dark); }
+.bah-only span { border-color: rgba(238, 241, 236, .35); color: var(--on-dark); }
+.bah-only input:checked + span { background: var(--brass); border-color: var(--brass); color: var(--forest-950); }
+.bah-only input:disabled + span { opacity: .45; cursor: not-allowed; }
+
+.bah-line { display: flex; align-items: center; gap: .45rem; margin-top: .15rem; font-size: .84rem; }
+.bah-line svg { width: 1rem; height: 1rem; flex: none; }
+.bah-line--fit { color: var(--forest); }
+.bah-line--fit b { font-weight: 500; }
+.bah-line--over { color: var(--muted); }
+
+.bah-box { display: grid; gap: .7rem; padding: 1rem; background: var(--paper); border: 1px solid var(--line); border-left: 3px solid var(--brass); }
+.bah-box-k { font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--brass); font-weight: 500; }
+.bah-box .bah-picker select { min-width: 8.5rem; }
+.bah-box-out { font-size: .9rem; line-height: 1.45; color: var(--body); }
+.bah-box-out.is-fit b { color: var(--forest); font-weight: 500; }
+.bah-box-out.is-over b { color: #8a4b23; font-weight: 500; }
+
+@media (max-width: 900px) {
+  .bah-bar { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .bah-picker select { min-height: 2.75rem; font-size: 16px; }
+  .bah-deps { min-height: 2.75rem; }
+}
+
+/* FEMA flood zone */
+.flood { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: start; padding: 1.2rem 1.3rem; background: var(--bone); border: 1px solid var(--line); border-left: 3px solid var(--muted); }
+.flood-ico { width: 2.6rem; height: 2.6rem; border-radius: 50%; display: grid; place-items: center; background: var(--paper); color: var(--muted); }
+.flood-ico svg { width: 1.3rem; height: 1.3rem; }
+.flood-title { font-family: var(--serif); font-size: clamp(1.3rem, 1.1rem + .6vw, 1.6rem); line-height: 1.15; color: var(--ink); margin-bottom: .3rem; }
+.flood p + p { margin-top: .2rem; }
+.flood-src { font-size: .8rem; color: var(--muted); margin-top: .6rem !important; }
+.flood-src a { color: var(--forest); text-decoration: underline; text-underline-offset: 3px; }
+.flood--low { border-left-color: var(--forest); }
+.flood--low .flood-ico { background: var(--sage-100); color: var(--forest); }
+.flood--moderate { border-left-color: var(--brass); }
+.flood--moderate .flood-ico { background: rgba(214, 189, 142, .35); color: #7a5a24; }
+.flood--high { border-left-color: #9a3b2a; }
+.flood--high .flood-ico { background: rgba(154, 59, 42, .12); color: #9a3b2a; }
+
+/* ==========================================================================
+   Rental scam checker (verify.html)
+   ========================================================================== */
+.vr-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: clamp(2rem, 6vw, 5rem); align-items: start; }
+.vr-form textarea {
+  width: 100%; min-height: 12rem; margin-top: .6rem; padding: 1rem 1.1rem; resize: vertical;
+  border: 1px solid var(--line-strong); border-radius: 4px; background: var(--paper); color: var(--ink); font-size: 1rem; line-height: 1.55; outline: none;
+  transition: border-color .3s, box-shadow .3s;
+}
+.vr-form textarea:focus { border-color: var(--forest); box-shadow: 0 0 0 3px rgba(27, 77, 62, .12); }
+.vr-out { margin-top: 2.2rem; display: grid; gap: 1.2rem; }
+.vr-verdict { padding: 1.4rem 1.5rem; border-left: 4px solid var(--muted); background: var(--bone); }
+.vr-verdict-t { font-family: var(--serif); font-size: clamp(1.6rem, 1.3rem + 1vw, 2.2rem); line-height: 1.1; color: var(--ink); margin-bottom: .35rem; }
+.vr-verdict--high { border-color: #9a3b2a; background: rgba(154, 59, 42, .07); }
+.vr-verdict--high .vr-verdict-t { color: #7d2c1e; }
+.vr-verdict--caution { border-color: var(--brass); background: rgba(214, 189, 142, .18); }
+.vr-verdict--match { border-color: var(--forest); background: var(--sage-100); }
+.vr-verdict--match .vr-verdict-t { color: var(--forest); }
+.vr-h { font-family: var(--serif); font-size: 1.45rem; line-height: 1.1; color: var(--ink); margin: .6rem 0 .2rem; }
+.vr-flags { display: grid; gap: .6rem; }
+.vr-flag { display: grid; grid-template-columns: 6.2rem 1fr; gap: .9rem; align-items: start; padding: .85rem 1rem; background: var(--paper); border: 1px solid var(--line); }
+.vr-flag q { color: var(--muted); font-style: italic; }
+.vr-sev { justify-self: start; padding: .25rem .6rem; border-radius: 999px; font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 500; white-space: nowrap; }
+.vr-flag--3 .vr-sev { background: #9a3b2a; color: #fff; }
+.vr-flag--2 .vr-sev { background: var(--brass); color: var(--forest-950); }
+.vr-flag--1 .vr-sev { background: var(--stone); color: var(--body); }
+.vr-cards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); }
+.vr-next { padding: 1.2rem 1.3rem; background: var(--forest-900) var(--grain); color: var(--on-dark-muted); }
+.vr-next .vr-h { color: var(--bone); margin-top: 0; }
+.vr-next a { color: var(--brass-light); text-decoration: underline; text-underline-offset: 3px; }
+.vr-next p + p { margin-top: .5rem; }
+.vr-aside { position: sticky; top: 7rem; padding: clamp(1.4rem, 3vw, 2rem); background: var(--bone); border: 1px solid var(--line); border-top: 3px solid var(--brass); display: grid; gap: 1rem; }
+.vr-promises, .vr-signs { display: grid; gap: .6rem; }
+.vr-promises li, .vr-signs li { display: flex; gap: .7rem; align-items: baseline; font-size: .95rem; }
+.vr-promises li::before { content: ""; flex: none; width: .5rem; height: .5rem; border-radius: 50%; background: var(--forest); transform: translateY(-.1em); }
+.vr-signs li::before { content: "!"; flex: none; width: 1.2rem; height: 1.2rem; border-radius: 50%; display: grid; place-items: center; background: rgba(154, 59, 42, .12); color: #9a3b2a; font-size: .72rem; font-weight: 700; }
+.vr-promises a { color: var(--forest); text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 900px) { .vr-grid { grid-template-columns: 1fr; } .vr-aside { position: static; } }
+@media (max-width: 560px) { .vr-flag { grid-template-columns: 1fr; gap: .4rem; } }
+/* Keep inline bold text and links flowing inside the promise/warning lists. */
+.vr-promises li, .vr-signs li { display: block; position: relative; padding-left: 1.7rem; }
+.vr-promises li::before { position: absolute; left: .35rem; top: .6em; }
+.vr-signs li::before { position: absolute; left: 0; top: .15em; }
+
+/* ==========================================================================
+   Fort Bragg gate commute
+   ========================================================================== */
+.gt { display: grid; gap: 1rem; }
+.gt-best { padding: 1.2rem 1.4rem; background: var(--forest-900) var(--grain); color: var(--on-dark-muted); border-left: 3px solid var(--brass); }
+.gt-best-k { font-size: .68rem; letter-spacing: .24em; text-transform: uppercase; color: var(--brass-light); font-weight: 500; }
+.gt-best-v { font-family: var(--serif); font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.2rem); line-height: 1.1; color: var(--bone); margin-top: .35rem; }
+.gt-best-v b { font-weight: 400; color: var(--brass-light); }
+.gt-best-v span { font-family: var(--sans); font-size: .9rem; color: var(--on-dark-muted); }
+.gt-best-note { font-size: .88rem; margin-top: .4rem; }
+.gt-list { border-top: 1px solid var(--line-strong); }
+.gt-row { display: grid; grid-template-columns: 2.2rem minmax(0, 1fr) auto auto 2.4rem; gap: .9rem; align-items: center; padding: .8rem 0; border-bottom: 1px solid var(--line); }
+.gt-row.is-closed { opacity: .6; }
+.gt-no { width: 2.2rem; height: 2.2rem; border-radius: 50%; display: grid; place-items: center; background: var(--sage-100); color: var(--forest); font-size: .8rem; font-weight: 500; }
+.gt-name { display: grid; min-width: 0; }
+.gt-name strong { font-weight: 500; color: var(--ink); }
+.gt-name small { font-size: .8rem; color: var(--muted); }
+.gt-status { font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 500; padding: .25rem .6rem; border-radius: 999px; white-space: nowrap; }
+.gt-status.is-open { background: var(--sage-100); color: var(--forest); }
+.gt-status.is-shut { background: var(--stone); color: var(--muted); }
+.gt .ex-credit a { color: var(--forest); text-decoration: underline; }
+.card-gate { display: flex; align-items: center; gap: .45rem; font-size: .84rem; color: var(--body); margin-top: .15rem; }
+.card-gate svg { width: 1rem; height: 1rem; flex: none; color: var(--forest); }
+@media (max-width: 640px) {
+  .gt-row { grid-template-columns: 2.2rem minmax(0, 1fr) auto; }
+  .gt-status { grid-column: 2; justify-self: start; }
+  .gt-row .tt-time { grid-row: 1; grid-column: 3; }
+  .gt-row .ex-btn { grid-column: 3; justify-self: end; }
+}

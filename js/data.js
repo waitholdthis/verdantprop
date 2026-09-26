@@ -100,6 +100,8 @@
         name: str(p.name, 120), cat: oneOf(p.cat, ['dining', 'shopping', 'schools', 'parks', 'health'], 'parks'), type: str(p.type, 60), lat: Number(p.lat), lng: Number(p.lng)
       })) : [],
       nearbyHidden: Array.isArray(raw.nearbyHidden) ? raw.nearbyHidden.map((n) => str(n, 120)).filter(Boolean).slice(0, 200) : [],
+      flood: raw.flood && typeof raw.flood === 'object' ? { zone: raw.flood.zone ? str(raw.flood.zone, 8) : null, subtype: str(raw.flood.subtype, 80), sfha: raw.flood.sfha === true, checked: /^\d{4}-\d{2}-\d{2}$/.test(raw.flood.checked || '') ? raw.flood.checked : '' } : null,
+      gates: Array.isArray(raw.gates) ? raw.gates.filter((g) => g && /^\d{1,2}A?$/.test(g.no) && isFinite(g.sec) && isFinite(g.m)).slice(0, 20).map((g) => ({ no: g.no, sec: Math.round(g.sec), m: Math.round(g.m) })) : [],
       pano: sanitizePano(raw.pano, httpsUrl, str),
       streetView: raw.streetView && raw.streetView.off === true ? { off: true } : raw.streetView ? clean({ lat: Number(raw.streetView.lat), lng: Number(raw.streetView.lng), heading: Number(raw.streetView.heading) || 0, pitch: Number(raw.streetView.pitch) || 0, fov: Number(raw.streetView.fov) || 75 }) : null,
       featured: raw.featured === true,
@@ -262,6 +264,44 @@
     }
   };
 
+  /* ---------- FEMA flood zones (National Flood Hazard Layer) ---------- */
+  const FLOOD_URL = 'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query';
+  const flood = {
+    // Look up the FEMA flood zone at a point. Returns { zone, subtype, sfha, checked } or { zone: null } if unmapped.
+    async lookup(lat, lng) {
+      lat = Number(lat); lng = Number(lng);
+      if (!isFinite(lat) || !isFinite(lng)) throw new Error('No location');
+      const key = 'verdant:flood:' + lat.toFixed(5) + ',' + lng.toFixed(5);
+      try { const c = JSON.parse(localStorage.getItem(key)); if (c && Date.now() - c.t < 30 * 864e5) return c.v; } catch (e) { /* ignore */ }
+      const qs = 'geometry=' + lng + ',' + lat + '&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=FLD_ZONE,ZONE_SUBTY,SFHA_TF&returnGeometry=false&f=json';
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 20000);
+      let j;
+      try {
+        const res = await fetch(FLOOD_URL + '?' + qs, { signal: ctrl.signal });
+        if (!res.ok) throw new Error('FEMA HTTP ' + res.status);
+        j = await res.json();
+      } finally { clearTimeout(timer); }
+      if (j.error) throw new Error('FEMA error');
+      const a = j.features && j.features[0] && j.features[0].attributes;
+      const v = a ? { zone: String(a.FLD_ZONE || '').trim(), subtype: String(a.ZONE_SUBTY || '').trim(), sfha: a.SFHA_TF === 'T', checked: new Date().toISOString().slice(0, 10) }
+        : { zone: null, checked: new Date().toISOString().slice(0, 10) };
+      try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), v })); } catch (e) { /* ignore */ }
+      return v;
+    },
+    // Plain-language meaning: level is 'low' | 'moderate' | 'high' | 'unknown'.
+    describe(f) {
+      if (!f || !f.zone) return { level: 'unknown', title: 'Not mapped by FEMA', text: 'FEMA has no flood map for this spot. Ask us about the property’s history.' };
+      const z = f.zone.toUpperCase(), sub = (f.subtype || '').toUpperCase();
+      if (f.sfha || /^(A|AE|AH|AO|AR|A99|V|VE)$/.test(z)) return { level: 'high', title: 'High-risk flood area (Zone ' + z + ')', text: 'At least a 1% chance of flooding each year. Lenders require flood insurance for mortgages here, and renters should strongly consider it.' };
+      if (z === 'X' && /0\.2/.test(sub)) return { level: 'moderate', title: 'Moderate flood risk (Zone X, shaded)', text: 'Between a 0.2% and 1% chance of flooding each year. Flood insurance is optional but affordable.' };
+      if (z === 'X' || z === 'C' || z === 'B') return { level: 'low', title: 'Minimal flood risk (Zone ' + z + ')', text: 'Outside FEMA’s high- and moderate-risk flood areas. Flood insurance is not required.' };
+      if (z === 'D') return { level: 'unknown', title: 'Undetermined (Zone D)', text: 'FEMA hasn’t studied flood risk here. Ask us about the property’s history.' };
+      return { level: 'unknown', title: 'Zone ' + z, text: f.subtype || 'See FEMA’s flood map for details.' };
+    },
+    mapLink(lat, lng) { return 'https://msc.fema.gov/portal/search?AddressQuery=' + encodeURIComponent(lat + ',' + lng); }
+  };
+
   /* ---------- Google Street View ---------- */
   const streetView = {
     // Read a view from a Google Maps link (…/@lat,lng,3a,75y,210h,90t/…), an embed URL/iframe
@@ -335,6 +375,8 @@
           '<h3 class="card-title">' + esc(l.title || l.address) + '</h3>' +
           '<p class="card-addr">' + esc(fmt.fullAddress(l)) + '</p>' +
           '<p class="card-facts"><span><b>' + fmt.num(l.beds) + '</b> Bed</span><span><b>' + fmt.num(l.baths) + '</b> Bath</span><span><b>' + fmt.num(l.sqft) + '</b> Sq Ft</span></p>' +
+          (Array.isArray(l.gates) && l.gates.length && !opts.noLink ? '<p class="card-gate">' + icon.car + Math.max(1, Math.round(l.gates[0].sec / 60)) + ' min to Fort Bragg</p>' : '') +
+          (window.Verdant && window.Verdant.bah && !opts.noLink ? window.Verdant.bah.badge(l) : '') +
         '</div>' +
         (opts.noLink ? '' : '<a class="card-link" href="' + href + '"><span class="sr-only">View ' + esc(l.address) + '</span></a>') +
       '</article>'
@@ -435,5 +477,5 @@
   fmt.LISTING_TYPES = LISTING_TYPES;
   fmt.PROPERTY_TYPES = PROPERTY_TYPES;
 
-  window.Verdant = { store, fmt, embed, icon, leaf, esc, card, uid, saved, geo, streetView };
+  window.Verdant = { store, fmt, embed, icon, leaf, esc, card, uid, saved, geo, streetView, flood };
 })();
