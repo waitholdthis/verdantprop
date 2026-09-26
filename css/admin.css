@@ -201,3 +201,5 @@ body.admin { display: grid; grid-template-columns: 17rem minmax(0, 1fr); min-hei
 .ad-aim span::before { width: 1.1rem; height: 2px; }
 .ad-aim span::after { width: 2px; height: 1.1rem; }
 .ad-aim em { position: absolute; top: calc(100% + .45rem); white-space: nowrap; font-style: normal; font-size: .72rem; letter-spacing: .08em; padding: .25rem .6rem; border-radius: 999px; background: rgba(7, 23, 15, .75); color: var(--bone); }
+.ad-link--strong { color: var(--brass-light); font-weight: 500; }
+.ad-link:disabled { opacity: .5; cursor: progress; }
