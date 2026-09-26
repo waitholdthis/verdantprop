@@ -27,7 +27,13 @@
     }
 
     document.title = (l.title && l.title !== l.address ? l.title + ' · ' : '') + l.address + ' | Verdant Properties';
-    const photos = (await Promise.all((l.photos || []).map((p) => V.store.resolve(p)))).filter(Boolean);
+    // Keep each photo paired with its room label, even if a photo fails to load.
+    const media = (await Promise.all((l.photos || []).map(async (ref) => ({ src: await V.store.resolve(ref), room: ((l.rooms || {})[ref] || '').trim() })))).filter((m) => m.src);
+    const photos = media.map((m) => m.src);
+    const rooms = media.map((m) => m.room);
+    // One jump tab per room, in the order rooms first appear: Kitchen (3), Living room (2)...
+    const roomGroups = [];
+    rooms.forEach((r, i) => { if (!r) return; const key = r.toLowerCase(); const g = roomGroups.find((x) => x.key === key); if (g) g.count++; else roomGroups.push({ key, room: r, start: i, count: 1 }); });
     const full = V.fmt.fullAddress(l);
     const inquireHref = 'contact.html?about=' + encodeURIComponent(l.address);
     const statusCls = l.status === 'pending' ? 'pending' : (l.status === 'leased' || l.status === 'sold') ? 'leased' : '';
@@ -37,17 +43,46 @@
     if (!photos.length) {
       gallery = '<div class="gallery-empty reveal"><div class="ph">' + V.leaf() + '<span>Photography coming soon</span></div></div>';
     } else {
-      const shown = photos.slice(0, 5);
-      const cls = shown.length >= 5 ? '' : ' gallery--' + shown.length;
-      gallery = '<div class="gallery' + cls + ' reveal">' +
-        shown.map((src, i) => '<button type="button" data-open="' + i + '" aria-label="Open photo ' + (i + 1) + ' of ' + photos.length + '"><img src="' + esc(src) + '" alt="" ' + (i ? 'loading="lazy"' : '') + '></button>').join('') +
-        (photos.length > 1 ? '<button type="button" class="btn btn--light btn--sm gallery-all" data-open="0" style="cursor:pointer">' + V.icon.camera.replace('<svg', '<svg style="width:1rem;height:1rem"') + ' All ' + photos.length + ' photos</button>' : '') +
+      // Photo reel: one photo at a time, shown whole over a blurred copy of itself.
+      const n = photos.length;
+      const pad = (i) => String(i).padStart(2, '0');
+      const chev = (d) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="' + d + '"/></svg>';
+      gallery = '<div class="reel' + (n === 1 ? ' reel--single' : '') + ' reveal" data-reel>' +
+        '<div class="reel-stage">' +
+          '<div class="reel-track" data-reel-track tabindex="0" role="region" aria-roledescription="carousel" aria-label="Photos of ' + esc(l.address) + '">' +
+            photos.map((src, i) =>
+              '<button type="button" class="reel-slide" data-open="' + i + '" aria-label="' + (rooms[i] ? esc(rooms[i]) + ', photo ' : 'Photo ') + (i + 1) + ' of ' + n + ', open full screen" data-cursor="Expand">' +
+                '<img class="reel-bg" src="' + esc(src) + '" alt="" aria-hidden="true"' + (i > 1 ? ' loading="lazy"' : '') + '>' +
+                '<img class="reel-img" src="' + esc(src) + '" alt="' + esc(rooms[i]) + '"' + (i > 1 ? ' loading="lazy"' : '') + ' decoding="async">' +
+                (rooms[i] ? '<span class="reel-room">' + esc(rooms[i]) + '</span>' : '') +
+              '</button>').join('') +
+          '</div>' +
+          (n > 1
+            ? '<button type="button" class="reel-nav reel-nav--prev" data-reel-go="-1" aria-label="Previous photo">' + chev('M15 5l-7 7 7 7') + '</button>' +
+              '<button type="button" class="reel-nav reel-nav--next" data-reel-go="1" aria-label="Next photo">' + chev('M9 5l7 7-7 7') + '</button>' +
+              '<p class="reel-count" aria-live="polite"><b data-reel-cur>01</b><span>/ ' + pad(n) + '</span></p>'
+            : '') +
+          '<button type="button" class="reel-full" data-open-current aria-label="View photos full screen">' + V.icon.expand + '<span>Full screen</span></button>' +
+        '</div>' +
+        (roomGroups.length > 1 ? '<div class="reel-rooms" data-reel-rooms role="tablist" aria-label="Jump to a room">' +
+          roomGroups.map((g, k) => '<button type="button" role="tab" class="reel-room-tab" data-reel-to="' + g.start + '" data-group="' + k + '" aria-selected="false">' + esc(g.room) + (g.count > 1 ? '<b>' + g.count + '</b>' : '') + '</button>').join('') +
+        '</div>' : '') +
+        (n > 1 ? '<div class="reel-thumbs" data-reel-thumbs role="tablist" aria-label="Choose a photo">' +
+          photos.map((src, i) => '<button type="button" role="tab" class="reel-thumb' + (i ? '' : ' on') + '" data-reel-to="' + i + '" aria-label="' + (rooms[i] ? esc(rooms[i]) + ', photo ' : 'Photo ') + (i + 1) + '" title="' + esc(rooms[i]) + '" aria-selected="' + !i + '"><img src="' + esc(src) + '" alt="" loading="lazy"></button>').join('') +
+        '</div>' : '') +
         '</div>';
     }
 
     /* ---------- Media sections ---------- */
     const tour = l.tour && V.embed.tour(l.tour.url);
-    const tourHTML = tour
+    const hasPano = window.VerdantTour && VerdantTour.has(l);
+    const panoRooms = hasPano ? VerdantTour.scenesOf(l.pano).length : 0;
+    const tourHTML = hasPano
+      ? '<section class="prop-section" id="tour"><h2>3D <em style="color:var(--forest)">walk-through</em></h2>' +
+        '<div class="media-frame pn-frame reveal" data-pano>' +
+        '<button type="button" class="tour-launch" data-cursor="Enter"><span class="orb">' + V.icon.cube + '</span><strong>Step inside</strong><span>360&deg; tour &middot; ' + panoRooms + (panoRooms === 1 ? ' room' : ' rooms') + '</span></button>' +
+        '</div><div class="reel-rooms pn-rooms" data-pano-rooms role="tablist" aria-label="Rooms in the 3D tour"></div></section>'
+      : tour
       ? '<section class="prop-section" id="tour"><h2>3D <em style="color:var(--forest)">walk-through</em></h2>' +
         '<div class="media-frame reveal" data-tour="' + esc(tour.src) + '">' +
         '<button type="button" class="tour-launch" data-cursor="Enter"><span class="orb">' + V.icon.cube + '</span><strong>Step inside</strong><span>Interactive tour &middot; ' + esc(tour.provider) + '</span></button>' +
@@ -115,7 +150,7 @@
             '<div><b>' + V.fmt.num(l.beds) + '</b><span>Bedrooms</span></div>' +
             '<div><b>' + V.fmt.num(l.baths) + '</b><span>Bathrooms</span></div>' +
             '<div><b>' + V.fmt.num(l.sqft) + '</b><span>Square feet</span></div>' +
-            '<div><b>' + (tour ? '3D' : photos.length || '—') + '</b><span>' + (tour ? 'Walk-through' : 'Photos') + '</span></div>' +
+            '<div><b>' + (tour || hasPano ? '3D' : photos.length || '—') + '</b><span>' + (tour || hasPano ? 'Walk-through' : 'Photos') + '</span></div>' +
           '</div>' +
           '<section class="prop-section"><h2>About this <em style="color:var(--forest)">home</em></h2><p class="prop-desc reveal">' + esc(l.description || 'Contact us for details about this home.') + '</p></section>' +
           tourHTML + videoHTML +
@@ -193,11 +228,62 @@
       wrap.hidden = false;
     });
 
+    /* ---------- 360° tour (Pannellum) loads on demand ---------- */
+    const pf = mount.querySelector('[data-pano]');
+    if (pf) pf.querySelector('.tour-launch').addEventListener('click', () => VerdantTour.mount(pf, l, mount.querySelector('[data-pano-rooms]')));
+
     /* ---------- 3D tour loads on demand ---------- */
     const tf = mount.querySelector('[data-tour]');
     if (tf) tf.querySelector('.tour-launch').addEventListener('click', () => {
       tf.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation" referrerpolicy="strict-origin-when-cross-origin" src="' + esc(tf.dataset.tour) + '" title="3D walk-through of ' + esc(l.address) + '" allow="fullscreen; xr-spatial-tracking; vr; gyroscope; accelerometer" allowfullscreen></iframe>';
     });
+
+    /* ---------- Photo reel ---------- */
+    const reel = mount.querySelector('[data-reel]');
+    let reelIndex = 0;
+    let reelGo = null;
+    if (reel) {
+      const track = reel.querySelector('[data-reel-track]');
+      const slides = [...track.children];
+      const thumbs = reel.querySelector('[data-reel-thumbs]');
+      const cur = reel.querySelector('[data-reel-cur]');
+      const roomBar = reel.querySelector('[data-reel-rooms]');
+      const go = (i, smooth) => {
+        i = Math.max(0, Math.min(slides.length - 1, i));
+        track.scrollTo({ left: slides[i].offsetLeft, behavior: smooth === false || matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      };
+      const mark = (i) => {
+        if (i === reelIndex && reel.dataset.ready) return;
+        reel.dataset.ready = '1';
+        reelIndex = i;
+        if (cur) cur.textContent = String(i + 1).padStart(2, '0');
+        reel.querySelectorAll('[data-reel-go="-1"]').forEach((b) => { b.disabled = i === 0; });
+        reel.querySelectorAll('[data-reel-go="1"]').forEach((b) => { b.disabled = i === slides.length - 1; });
+        if (roomBar) {
+          roomBar.querySelectorAll('.reel-room-tab').forEach((t, k) => { const on = (rooms[i] || '').toLowerCase() === roomGroups[k].key; t.classList.toggle('on', on); t.setAttribute('aria-selected', String(on)); if (on) roomBar.scrollTo({ left: t.offsetLeft - (roomBar.clientWidth - t.clientWidth) / 2, behavior: 'smooth' }); });
+        }
+        if (thumbs) {
+          thumbs.querySelectorAll('.reel-thumb').forEach((t, j) => { t.classList.toggle('on', j === i); t.setAttribute('aria-selected', String(j === i)); });
+          const t = thumbs.children[i];
+          // Scroll only the thumbnail strip, never the page.
+          if (t) thumbs.scrollTo({ left: t.offsetLeft - (thumbs.clientWidth - t.clientWidth) / 2, behavior: 'smooth' });
+        }
+      };
+      let raf;
+      track.addEventListener('scroll', () => {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => mark(Math.round(track.scrollLeft / track.clientWidth)));
+      }, { passive: true });
+      reel.querySelectorAll('[data-reel-go]').forEach((b) => b.addEventListener('click', () => go(reelIndex + Number(b.dataset.reelGo))));
+      [thumbs, roomBar].forEach((bar) => bar && bar.addEventListener('click', (e) => { const t = e.target.closest('[data-reel-to]'); if (t) go(Number(t.dataset.reelTo)); }));
+      track.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') { e.preventDefault(); go(reelIndex + 1); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); go(reelIndex - 1); }
+      });
+      window.addEventListener('resize', () => go(reelIndex, false));
+      reelGo = go;
+      mark(0);
+    }
 
     /* ---------- Lightbox ---------- */
     const lb = document.querySelector('[data-lightbox]');
@@ -211,15 +297,16 @@
     const show = (i) => {
       cur = (i + photos.length) % photos.length;
       img.src = photos[cur];
-      img.alt = 'Photo ' + (cur + 1) + ' of ' + l.address;
-      countEl.textContent = String(cur + 1).padStart(2, '0') + ' / ' + String(photos.length).padStart(2, '0');
+      img.alt = (rooms[cur] ? rooms[cur] + ', ' : '') + 'photo ' + (cur + 1) + ' of ' + l.address;
+      countEl.textContent = String(cur + 1).padStart(2, '0') + ' / ' + String(photos.length).padStart(2, '0') + (rooms[cur] ? '  ·  ' + rooms[cur].toUpperCase() : '');
       thumbs.querySelectorAll('button').forEach((b, j) => b.classList.toggle('on', j === cur));
       const t = thumbs.children[cur];
       if (t) t.scrollIntoView({ block: 'nearest', inline: 'center' });
     };
     const open = (i) => { lastFocus = document.activeElement; lb.hidden = false; requestAnimationFrame(() => lb.classList.add('open')); document.body.style.overflow = 'hidden'; show(i); lb.querySelector('[data-lb-close]').focus(); };
-    const close = () => { lb.classList.remove('open'); document.body.style.overflow = ''; setTimeout(() => { lb.hidden = true; }, 400); if (lastFocus) lastFocus.focus(); };
+    const close = () => { if (reelGo) reelGo(cur, false); lb.classList.remove('open'); document.body.style.overflow = ''; setTimeout(() => { lb.hidden = true; }, 400); if (lastFocus) lastFocus.focus(); };
     mount.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => open(Number(b.dataset.open))));
+    mount.querySelectorAll('[data-open-current]').forEach((b) => b.addEventListener('click', () => open(reelIndex)));
     lb.querySelector('[data-lb-close]').addEventListener('click', close);
     lb.querySelectorAll('.lightbox-nav').forEach((b) => b.addEventListener('click', () => show(cur + (b.dataset.dir === 'next' ? 1 : -1))));
     thumbs.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) show(Number(b.dataset.i)); });

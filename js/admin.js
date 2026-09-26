@@ -50,7 +50,7 @@
       [list.length, 'Total listings'],
       [count((l) => l.published !== false && (l.status || 'available') === 'available'), 'Live & available'],
       [count((l) => l.status === 'pending' || l.status === 'coming'), 'Pending / coming'],
-      [count((l) => l.tour && l.tour.url), 'With 3D tours']
+      [count((l) => (l.tour && l.tour.url) || (window.VerdantTour && VerdantTour.has(l))), 'With 3D tours']
     ].map(([n, k]) => '<div class="ad-stat"><b>' + n + '</b><span>' + k + '</span></div>').join('');
 
     const rows = view.querySelector('[data-rows]');
@@ -81,7 +81,7 @@
         const st = l.status || 'available';
         badges.push('<span class="ad-badge' + (st === 'pending' || st === 'coming' ? ' ad-badge--pending' : st === 'leased' || st === 'sold' ? ' ad-badge--leased' : '') + '">' + esc(V.fmt.status(st)) + '</span>');
         if (l.featured) badges.push('<span class="ad-badge">Featured</span>');
-        if (l.tour && l.tour.url) badges.push('<span class="ad-badge">3D</span>');
+        if ((l.tour && l.tour.url) || (window.VerdantTour && VerdantTour.has(l))) badges.push('<span class="ad-badge">3D</span>');
         if (l.video && (l.video.url || l.video.ref)) badges.push('<span class="ad-badge">Video</span>');
         return '<div class="ad-row">' +
           '<div class="ad-thumb">' + (cover ? '<img src="' + esc(cover) + '" alt="">' : '<div class="ph">' + V.leaf() + '</div>') + '</div>' +
@@ -147,7 +147,7 @@
     view.innerHTML = document.getElementById('tpl-edit').innerHTML;
     const form = view.querySelector('[data-form]');
     const l = existing ? JSON.parse(JSON.stringify(existing)) : { type: 'rent', status: 'available', city: 'Fayetteville', state: 'NC', published: true, featured: false, photos: [], features: [] };
-    const state = { photos: (l.photos || []).slice(), features: (l.features || []).slice(), videoRef: l.video && l.video.ref || null, added: new Set() };
+    const state = { rooms: Object.assign({}, l.rooms), photos: (l.photos || []).slice(), features: (l.features || []).slice(), videoRef: l.video && l.video.ref || null, added: new Set() };
 
     view.querySelector('[data-edit-title]').innerHTML = existing ? esc(l.title || l.address) : 'New <em>listing</em>';
     if (existing) view.querySelector('[data-delete]').hidden = false;
@@ -219,29 +219,41 @@
       photoCount.textContent = state.photos.length + (state.photos.length === 1 ? ' photo' : ' photos');
       const urls = await Promise.all(state.photos.map((p) => V.store.resolve(p)));
       photoList.innerHTML = urls.map((u, i) =>
-        '<li class="ad-photo" draggable="true" data-i="' + i + '">' +
-          '<img src="' + esc(u) + '" alt="Photo ' + (i + 1) + '">' +
-          (i === 0 ? '<span class="tag tag--brass cover">Cover</span>' : '') +
-          '<div class="ctrl">' +
-            (i > 0 ? '<button type="button" data-act="cover" title="Make cover" aria-label="Make photo ' + (i + 1) + ' the cover">' + ic.star + '</button><button type="button" data-act="left" title="Move earlier" aria-label="Move photo ' + (i + 1) + ' earlier">' + ic.left + '</button>' : '') +
-            '<button type="button" data-act="remove" title="Remove" aria-label="Remove photo ' + (i + 1) + '">' + ic.x + '</button>' +
-          '</div></li>'
+        '<li class="ad-photo" data-i="' + i + '">' +
+          '<div class="ad-photo-img" draggable="true">' +
+            '<img src="' + esc(u) + '" alt="Photo ' + (i + 1) + '">' +
+            (i === 0 ? '<span class="tag tag--brass cover">Cover</span>' : '') +
+            '<div class="ctrl">' +
+              (i > 0 ? '<button type="button" data-act="cover" title="Make cover" aria-label="Make photo ' + (i + 1) + ' the cover">' + ic.star + '</button><button type="button" data-act="left" title="Move earlier" aria-label="Move photo ' + (i + 1) + ' earlier">' + ic.left + '</button>' : '') +
+              '<button type="button" data-act="remove" title="Remove" aria-label="Remove photo ' + (i + 1) + '">' + ic.x + '</button>' +
+            '</div>' +
+          '</div>' +
+          '<input class="ad-room" data-room list="room-list" maxlength="40" placeholder="Room" aria-label="Room shown in photo ' + (i + 1) + '" value="' + esc(state.rooms[state.photos[i]] || '') + '">' +
+        '</li>'
       ).join('');
       updatePreview();
     };
 
+    photoList.addEventListener('input', (e) => {
+      if (!e.target.matches('[data-room]')) return;
+      const ref = state.photos[Number(e.target.closest('.ad-photo').dataset.i)];
+      const v = e.target.value.trim();
+      if (v) state.rooms[ref] = v; else delete state.rooms[ref];
+      changed();
+    });
     photoList.addEventListener('click', async (e) => {
       const b = e.target.closest('[data-act]');
       if (!b) return;
       const i = Number(b.closest('.ad-photo').dataset.i);
       if (b.dataset.act === 'remove') {
         const [ref] = state.photos.splice(i, 1);
+        delete state.rooms[ref];
         if (state.added.has(ref)) { await V.store.deleteMedia(ref); state.added.delete(ref); }
       } else if (b.dataset.act === 'cover') state.photos.unshift(state.photos.splice(i, 1)[0]);
       else if (b.dataset.act === 'left' && i > 0) [state.photos[i - 1], state.photos[i]] = [state.photos[i], state.photos[i - 1]];
       changed(); drawPhotos();
     });
-    photoList.addEventListener('dragstart', (e) => { const li = e.target.closest('.ad-photo'); if (!li) return; dragFrom = Number(li.dataset.i); li.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+    photoList.addEventListener('dragstart', (e) => { const li = e.target.closest('.ad-photo'); if (!li || !e.target.closest('.ad-photo-img')) return; dragFrom = Number(li.dataset.i); li.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
     photoList.addEventListener('dragend', () => { photoList.querySelectorAll('.ad-photo').forEach((li) => li.classList.remove('dragging', 'drop-target')); dragFrom = null; });
     photoList.addEventListener('dragover', (e) => {
       if (dragFrom === null) return;
@@ -338,6 +350,201 @@
     };
     form.elements.tourUrl.addEventListener('input', () => { clearTimeout(tourTimer); tourTimer = setTimeout(drawTour, 500); });
 
+    /* 360° tour builder (Pannellum) */
+    const T = window.VerdantTour;
+    const pano = { scenes: JSON.parse(JSON.stringify((l.pano && l.pano.scenes) || [])), first: (l.pano && l.pano.first) || null };
+    const panoAdded = new Set();
+    const tourModeBox = view.querySelector('[data-tour-mode]');
+    const tourUrlBox = view.querySelector('[data-tour-url]');
+    const tourPanoBox = view.querySelector('[data-tour-pano]');
+    const sceneList = view.querySelector('[data-pano-scenes]');
+    const editor = view.querySelector('[data-pano-editor]');
+    const viewEl = view.querySelector('[data-pano-view]');
+    const editingEl = view.querySelector('[data-pano-editing]');
+    const doorTo = view.querySelector('[data-pano-door-to]');
+    const doorList = view.querySelector('[data-pano-doors]');
+    const panoMsg = view.querySelector('[data-pano-msg]');
+    let pv = null;
+    let current = null;
+    const initialMode = pano.scenes.length ? 'pano' : (l.tour && l.tour.url) ? 'url' : 'none';
+    form.querySelectorAll('input[name="tourMode"]').forEach((r) => { r.checked = r.value === initialMode; });
+    const tourMode = () => form.querySelector('input[name="tourMode"]:checked').value;
+    const syncTourMode = () => {
+      const m = tourMode();
+      tourUrlBox.hidden = m !== 'url';
+      tourPanoBox.hidden = m !== 'pano';
+      if (m === 'pano' && pano.scenes.length && !pv) openScene(current || pano.first || pano.scenes[0].id);
+    };
+    tourModeBox.addEventListener('change', () => { changed(); syncTourMode(); });
+
+    const nameOf = (id) => { const i = pano.scenes.findIndex((s) => s.id === id); return i < 0 ? '' : T.roomName(pano.scenes[i], i); };
+
+    const drawScenes = async () => {
+      if (!pano.scenes.length) { sceneList.innerHTML = ''; editor.hidden = true; if (pv) { pv.destroy(); pv = null; } return; }
+      if (!pano.scenes.some((s) => s.id === pano.first)) pano.first = pano.scenes[0].id;
+      const urls = await T.resolveUrls(pano);
+      sceneList.innerHTML = pano.scenes.map((s, i) =>
+        '<li class="ad-scene' + (s.id === current ? ' on' : '') + '" data-scene="' + esc(s.id) + '">' +
+          '<button type="button" class="ad-scene-thumb" data-scene-open aria-label="Edit ' + esc(T.roomName(s, i)) + '"><img src="' + esc(urls[s.id]) + '" alt=""><span>' + (i + 1) + '</span></button>' +
+          '<input class="ad-room" data-scene-room list="room-list" maxlength="40" placeholder="Room name" aria-label="Room name for 360 photo ' + (i + 1) + '" value="' + esc(s.room || '') + '">' +
+          '<div class="ad-scene-meta">' +
+            '<label class="ad-start"><input type="radio" name="panoFirst" value="' + esc(s.id) + '"' + (s.id === pano.first ? ' checked' : '') + '> Tour starts here</label>' +
+            '<span class="ad-hint">' + (s.hotspots || []).length + ' door' + ((s.hotspots || []).length === 1 ? '' : 's') + '</span>' +
+          '</div>' +
+          '<div class="ad-scene-acts">' +
+            (i > 0 ? '<button type="button" class="ad-icon-btn" data-scene-up title="Move earlier" aria-label="Move ' + esc(T.roomName(s, i)) + ' earlier">' + ic.left + '</button>' : '') +
+            '<button type="button" class="ad-icon-btn ad-icon-btn--danger" data-scene-del title="Remove" aria-label="Remove ' + esc(T.roomName(s, i)) + '">' + ic.trash + '</button>' +
+          '</div>' +
+        '</li>').join('');
+    };
+
+    const drawDoors = () => {
+      const s = pano.scenes.find((x) => x.id === current);
+      if (!s) return;
+      editingEl.textContent = 'Editing: ' + nameOf(s.id);
+      const others = pano.scenes.filter((x) => x.id !== s.id);
+      doorTo.innerHTML = others.length ? others.map((x) => '<option value="' + esc(x.id) + '">To ' + esc(nameOf(x.id)) + '</option>').join('') : '<option value="">Add another room first</option>';
+      doorTo.disabled = !others.length;
+      view.querySelector('[data-pano-add-door]').disabled = !others.length;
+      doorList.innerHTML = (s.hotspots || []).map((h, k) =>
+        '<li><span>Door to <b>' + esc(nameOf(h.to)) + '</b></span><button type="button" class="ad-link-btn" data-door-look="' + k + '">Show</button><button type="button" class="ad-link-btn" data-door-move="' + k + '" title="Move this door to the crosshair">Move here</button><button type="button" class="ad-link-btn" data-door-del="' + k + '">Remove</button></li>').join('');
+    };
+
+    // Rebuild the preview viewer (cheap: panoramas are cached as blob URLs).
+    async function openScene(id, keepView) {
+      current = id;
+      const s = pano.scenes.find((x) => x.id === id);
+      if (!s) return;
+      editor.hidden = false;
+      let pn;
+      try { pn = await T.load(); } catch (e) { panoMsg.textContent = 'The 360° viewer could not load. Check your connection.'; return; }
+      const view0 = keepView && pv ? { yaw: pv.getYaw(), pitch: pv.getPitch(), hfov: pv.getHfov() } : null;
+      if (pv) { pv.destroy(); pv = null; }
+      const urls = await T.resolveUrls(pano);
+      pv = pn.viewer(viewEl, T.config(pano, urls, { first: id, defaults: { mouseZoom: true } }));
+      pv.on('scenechange', (sid) => { current = sid; drawDoors(); sceneList.querySelectorAll('.ad-scene').forEach((li) => li.classList.toggle('on', li.dataset.scene === sid)); });
+      if (view0) pv.on('load', function once() { pv.off('load', once); pv.lookAt(view0.pitch, view0.yaw, view0.hfov, false); });
+      sceneList.querySelectorAll('.ad-scene').forEach((li) => li.classList.toggle('on', li.dataset.scene === id));
+      drawDoors();
+    }
+
+    // Resize large panoramas so they fit in phone GPU memory (4096px is the safe limit).
+    async function preparePano(file) {
+      const bmp = await createImageBitmap(file);
+      const ratio = bmp.width / bmp.height;
+      const w = Math.min(4096, bmp.width);
+      const c = document.createElement('canvas');
+      c.width = w;
+      c.height = Math.round(w / ratio);
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+      const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.9));
+      return { blob, ratio };
+    }
+    const addPanos = async (files) => {
+      const imgs = [...files].filter((f) => /^image\//.test(f.type));
+      if (!imgs.length) return;
+      let skipped = 0;
+      panoMsg.textContent = 'Preparing ' + imgs.length + (imgs.length === 1 ? ' photo…' : ' photos…');
+      for (const f of imgs) {
+        let prepared;
+        try { prepared = await preparePano(f); } catch (e) { skipped++; continue; }
+        if (Math.abs(prepared.ratio - 2) > 0.15) { skipped++; continue; }
+        const ref = await V.store.putMedia(prepared.blob, f.name);
+        panoAdded.add(ref);
+        const guess = f.name.replace(/\.[a-z0-9]+$/i, '').replace(/[_-]+/g, ' ').replace(/\b(img|pano|dsc|r0|\d{3,})\b/gi, '').trim();
+        pano.scenes.push({ id: V.uid('sc'), room: guess.length > 2 && guess.length < 40 ? guess.charAt(0).toUpperCase() + guess.slice(1) : '', ref, yaw: 0, pitch: 0, hfov: 100, hotspots: [] });
+      }
+      changed();
+      await drawScenes();
+      if (pano.scenes.length) await openScene(current && pano.scenes.some((s) => s.id === current) ? current : pano.scenes[pano.scenes.length - 1].id);
+      panoMsg.textContent = skipped
+        ? skipped + (skipped === 1 ? ' photo was' : ' photos were') + ' skipped: 360° photos must be about twice as wide as they are tall (2:1).'
+        : 'Drag the preview until the crosshair is on a doorway, then add a door.';
+      toast(skipped ? 'Some photos were not 360° panoramas' : '360° photos added');
+    };
+    const panoInput = view.querySelector('[data-pano-input]');
+    const panoDrop = view.querySelector('[data-pano-drop]');
+    panoInput.addEventListener('change', () => { addPanos(panoInput.files); panoInput.value = ''; });
+    ['dragenter', 'dragover'].forEach((ev) => panoDrop.addEventListener(ev, (e) => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) { e.preventDefault(); panoDrop.classList.add('over'); } }));
+    ['dragleave', 'drop'].forEach((ev) => panoDrop.addEventListener(ev, () => panoDrop.classList.remove('over')));
+    panoDrop.addEventListener('drop', (e) => { e.preventDefault(); addPanos(e.dataTransfer.files); });
+
+    sceneList.addEventListener('input', (e) => {
+      if (!e.target.matches('[data-scene-room]')) return;
+      const s = pano.scenes.find((x) => x.id === e.target.closest('.ad-scene').dataset.scene);
+      s.room = e.target.value.trim();
+      changed();
+      if (s.id === current) drawDoors();
+    });
+    sceneList.addEventListener('change', (e) => {
+      if (e.target.name === 'panoFirst') { pano.first = e.target.value; changed(); }
+      if (e.target.matches('[data-scene-room]')) openScene(current, true); // refresh door labels
+    });
+    sceneList.addEventListener('click', async (e) => {
+      const li = e.target.closest('.ad-scene');
+      if (!li) return;
+      const id = li.dataset.scene;
+      const i = pano.scenes.findIndex((x) => x.id === id);
+      if (e.target.closest('[data-scene-open]')) { openScene(id); return; }
+      if (e.target.closest('[data-scene-up]') && i > 0) {
+        [pano.scenes[i - 1], pano.scenes[i]] = [pano.scenes[i], pano.scenes[i - 1]];
+        changed(); await drawScenes(); return;
+      }
+      if (e.target.closest('[data-scene-del]')) {
+        if (!confirm('Remove this room from the tour? Doors leading to it will be removed too.')) return;
+        const [gone] = pano.scenes.splice(i, 1);
+        pano.scenes.forEach((s) => { s.hotspots = (s.hotspots || []).filter((h) => h.to !== gone.id); });
+        if (panoAdded.has(gone.ref)) { await V.store.deleteMedia(gone.ref); panoAdded.delete(gone.ref); }
+        if (current === gone.id) current = null;
+        changed(); await drawScenes();
+        if (pano.scenes.length) openScene(current || pano.scenes[0].id);
+      }
+    });
+
+    // Doors go exactly where the crosshair points (clamped so they never float at the ceiling).
+    const aim = () => ({ yaw: +pv.getYaw().toFixed(2), pitch: +Math.max(-45, Math.min(25, pv.getPitch())).toFixed(2) });
+    const angleGap = (a, b) => { const d = Math.abs(((a - b) % 360 + 540) % 360 - 180); return d; };
+    // Two doors closer than ~14° overlap on screen.
+    const nearDoor = (s, spot, skip) => (s.hotspots || []).find((h, k) => k !== skip && angleGap(h.yaw, spot.yaw) < 14 && Math.abs(h.pitch - spot.pitch) < 14);
+
+    view.querySelector('[data-pano-setview]').addEventListener('click', () => {
+      const s = pano.scenes.find((x) => x.id === current);
+      if (!s || !pv) return;
+      s.yaw = +pv.getYaw().toFixed(2); s.pitch = +pv.getPitch().toFixed(2); s.hfov = +pv.getHfov().toFixed(1);
+      changed();
+      toast('Starting angle saved for ' + nameOf(s.id));
+    });
+    view.querySelector('[data-pano-add-door]').addEventListener('click', () => {
+      const s = pano.scenes.find((x) => x.id === current);
+      if (!s || !pv || !doorTo.value) return;
+      s.hotspots = s.hotspots || [];
+      const spot = aim();
+      const clash = nearDoor(s, spot, -1);
+      if (clash) { panoMsg.textContent = 'There’s already a door to ' + nameOf(clash.to) + ' at the crosshair. Turn toward a different doorway, or use “Move here” on a door in the list.'; toast('Turn toward a different doorway first'); return; }
+      s.hotspots.push(Object.assign({ to: doorTo.value }, spot));
+      changed();
+      drawScenes();
+      openScene(current, true);
+      panoMsg.textContent = 'Drag the preview until the crosshair is on a doorway, then add a door.'; toast('Door to ' + nameOf(doorTo.value) + ' added');
+    });
+    doorList.addEventListener('click', (e) => {
+      const s = pano.scenes.find((x) => x.id === current);
+      const del = e.target.closest('[data-door-del]');
+      const look = e.target.closest('[data-door-look]');
+      if (del) { s.hotspots.splice(Number(del.dataset.doorDel), 1); changed(); drawScenes(); openScene(current, true); }
+      if (look && pv) { const h = s.hotspots[Number(look.dataset.doorLook)]; pv.lookAt(h.pitch, h.yaw, 90, 800); }
+      const move = e.target.closest('[data-door-move]');
+      if (move && pv) {
+        const k = Number(move.dataset.doorMove);
+        const spot = aim();
+        const clash = nearDoor(s, spot, k);
+        if (clash) { toast('That spot already has a door to ' + nameOf(clash.to)); return; }
+        Object.assign(s.hotspots[k], spot);
+        changed(); openScene(current, true);
+        panoMsg.textContent = 'Drag the preview until the crosshair is on a doorway, then add a door.'; toast('Door to ' + nameOf(s.hotspots[k].to) + ' moved');
+      }
+    });
+
     /* Map location */
     const geoStatus = view.querySelector('[data-geo-status]');
     const geoMapEl = view.querySelector('[data-geo-map]');
@@ -402,8 +609,10 @@
         description: f.description.value.trim(),
         features: state.features.slice(),
         photos: state.photos.slice(),
+        rooms: Object.fromEntries(state.photos.filter((p) => state.rooms[p]).map((p) => [p, state.rooms[p]])),
         video: mode === 'url' && vUrl ? { url: vUrl } : mode === 'file' && state.videoRef ? { ref: state.videoRef } : null,
-        tour: tUrl ? { url: tUrl } : null,
+        tour: tourMode() === 'url' && tUrl ? { url: tUrl } : null,
+        pano: tourMode() === 'pano' && pano.scenes.length ? JSON.parse(JSON.stringify({ first: pano.first || pano.scenes[0].id, scenes: pano.scenes })) : null,
         lat: num(f.lat.value), lng: num(f.lng.value),
         published: f.published.checked,
         featured: f.featured.checked
@@ -444,11 +653,14 @@
       }
       // Drop a replaced uploaded video
       if (existing && existing.video && existing.video.ref && (!d.video || d.video.ref !== existing.video.ref)) await V.store.deleteMedia(existing.video.ref);
-      const removed = ((existing && existing.photos) || []).filter((p) => !d.photos.includes(p));
+      const keptPano = new Set(((d.pano && d.pano.scenes) || []).map((sc) => sc.ref));
+      const oldPano = ((existing && existing.pano && existing.pano.scenes) || []).map((sc) => sc.ref);
+      const removed = ((existing && existing.photos) || []).filter((p) => !d.photos.includes(p)).concat(oldPano.filter((r) => !keptPano.has(r)), [...panoAdded].filter((r) => !keptPano.has(r)));
       await Promise.all(removed.map((p) => V.store.deleteMedia(p)));
       const saved = await V.store.save(d);
       dirty = false;
       state.added.clear();
+      panoAdded.clear();
       return saved;
     };
     form.addEventListener('submit', async (e) => {
@@ -478,6 +690,8 @@
     await drawPhotos();
     await drawVideo();
     drawTour();
+    await drawScenes();
+    syncTourMode();
     dirty = false;
     form.elements.address.focus({ preventScroll: true });
   }

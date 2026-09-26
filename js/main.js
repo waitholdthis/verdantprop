@@ -163,6 +163,8 @@
         if (t) chip.textContent = t.dataset.cursor;
       }, { passive: true });
       document.addEventListener('pointerleave', () => chip.classList.remove('on'));
+      // The element under the cursor may be replaced on click (e.g. a tour launcher), so hide until the next move.
+      document.addEventListener('pointerdown', () => chip.classList.remove('on'));
     }
 
     /* ---------- "Continue on your phone" QR (desktop only) ---------- */
