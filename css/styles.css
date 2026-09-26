@@ -1567,3 +1567,36 @@ body.nav-open .site-header .brand { color: var(--on-dark); position: relative; z
   .gt-row .tt-time { grid-row: 1; grid-column: 3; }
   .gt-row .ex-btn { grid-column: 3; justify-self: end; }
 }
+
+/* ==========================================================================
+   Floor plan
+   ========================================================================== */
+.fp { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.fp-canvas { padding: 1rem; background: var(--paper); border: 1px solid var(--line); }
+.fp-svg { width: 100%; height: auto; display: block; color: var(--sage); }
+.fp-floor { fill: #fdfcf8; }
+.fp-out { fill: url(#fp-deck); stroke: var(--sage); stroke-width: .12; stroke-dasharray: .5 .4; color: var(--sage); }
+.fp-wall { fill: none; stroke: var(--forest-900); stroke-width: .45; stroke-linejoin: miter; }
+.fp-gap { stroke: #fdfcf8; stroke-width: .6; }
+.fp-swing { fill: none; stroke: var(--forest-400); stroke-width: .1; }
+.fp-swing.is-ext { stroke: var(--brass); stroke-width: .14; }
+.fp-win { stroke: #7fa7c9; stroke-width: .5; stroke-dasharray: .2 .15; }
+.fp-counter { fill: var(--stone); stroke: var(--stone-dark); stroke-width: .06; }
+.fp-closet { fill: rgba(143, 169, 154, .18); stroke: var(--sage); stroke-width: .08; stroke-dasharray: .3 .2; }
+.fp-fire { fill: rgba(176, 141, 87, .25); stroke: var(--brass); stroke-width: .1; }
+.fp-fire-mark { fill: none; stroke: var(--brass); stroke-width: .1; }
+.fp-hit { fill: transparent; transition: fill .25s; }
+.fp-label { font-family: var(--sans); fill: var(--forest-900); text-anchor: middle; dominant-baseline: middle; letter-spacing: .02em; pointer-events: none; }
+.fp-room.is-link { cursor: pointer; outline: none; }
+.fp-room.is-link:hover .fp-hit, .fp-room.is-link:focus-visible .fp-hit { fill: rgba(176, 141, 87, .16); }
+.fp-room.on .fp-hit { fill: rgba(27, 77, 62, .14); }
+.fp-room.on .fp-label { font-weight: 600; }
+.fp-side { display: grid; gap: 1rem; }
+.fp-hint { font-size: .92rem; color: var(--body); }
+.fp-pick { padding: 1rem 1.1rem; background: var(--bone); border: 1px solid var(--line); border-left: 3px solid var(--forest); display: grid; gap: .7rem; }
+.fp-pick-t { font-family: var(--serif); font-size: 1.5rem; line-height: 1.1; color: var(--ink); }
+.fp-note { font-size: .82rem; line-height: 1.5; color: var(--muted); padding: .85rem 1rem; background: var(--paper); border: 1px dashed var(--line-strong); }
+.fp-note b { color: var(--ink); font-weight: 500; }
+@media (max-width: 900px) { .fp { grid-template-columns: 1fr; } .fp-canvas { padding: .5rem; } }
+.fp-dim { font-family: var(--sans); fill: var(--muted); text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
+.fp-canvas--img img { width: 100%; height: auto; display: block; }

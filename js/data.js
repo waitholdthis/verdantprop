@@ -67,6 +67,24 @@
     return { first: ids.has(p.first) ? p.first : scenes[0].id, scenes };
   }
 
+  function sanitizePlan(p, httpsUrl, str) {
+    if (!p || typeof p !== 'object') return null;
+    if (p.image) return httpsUrl(p.image) ? { image: httpsUrl(p.image), illustrative: p.illustrative === true } : null;
+    const n = (v, lo, hi) => { const x = Number(v); return isFinite(x) ? Math.max(lo, Math.min(hi, x)) : 0; };
+    const W = n(p.w, 10, 200), H = n(p.h, 10, 200);
+    const box = (o) => ({ x: n(o.x, -50, 250), y: n(o.y, -50, 250), w: n(o.w, 0.5, 200), h: n(o.h, 0.5, 200) });
+    const line = (o) => ({ x: n(o.x, -50, 250), y: n(o.y, -50, 250), len: n(o.len, 0.5, 60), dir: o.dir === 'v' ? 'v' : 'h' });
+    const arr = (a, max) => (Array.isArray(a) ? a.filter((o) => o && typeof o === 'object').slice(0, max) : []);
+    const rooms = arr(p.rooms, 60).map((r) => Object.assign(box(r), { id: /^[\w-]{1,40}$/.test(r.id) ? r.id : 'rm-' + Math.random().toString(36).slice(2, 8), label: str(r.label, 30), photos: str(r.photos, 40), scene: str(r.scene, 40), outdoor: r.outdoor === true }));
+    if (!rooms.length) return null;
+    return {
+      illustrative: p.illustrative !== false, w: W, h: H, rooms,
+      doors: arr(p.doors, 80).map((d) => Object.assign(line(d), { kind: ['door', 'exterior', 'opening'].includes(d.kind) ? d.kind : 'door', flip: d.flip === true })),
+      windows: arr(p.windows, 80).map(line),
+      fixtures: arr(p.fixtures, 80).map((f) => Object.assign(box(f), { type: ['counter', 'fireplace', 'closet'].includes(f.type) ? f.type : 'counter' }))
+    };
+  }
+
   // Imported files are untrusted: keep only known fields, coerce types, and allow only https media.
   function sanitize(raw) {
     if (!raw || typeof raw !== 'object' || typeof raw.id !== 'string' || !/^[\w-]{1,80}$/.test(raw.id)) return null;
@@ -102,6 +120,7 @@
       nearbyHidden: Array.isArray(raw.nearbyHidden) ? raw.nearbyHidden.map((n) => str(n, 120)).filter(Boolean).slice(0, 200) : [],
       flood: raw.flood && typeof raw.flood === 'object' ? { zone: raw.flood.zone ? str(raw.flood.zone, 8) : null, subtype: str(raw.flood.subtype, 80), sfha: raw.flood.sfha === true, checked: /^\d{4}-\d{2}-\d{2}$/.test(raw.flood.checked || '') ? raw.flood.checked : '' } : null,
       gates: Array.isArray(raw.gates) ? raw.gates.filter((g) => g && /^\d{1,2}A?$/.test(g.no) && isFinite(g.sec) && isFinite(g.m)).slice(0, 20).map((g) => ({ no: g.no, sec: Math.round(g.sec), m: Math.round(g.m) })) : [],
+      plan: sanitizePlan(raw.plan, httpsUrl, str),
       pano: sanitizePano(raw.pano, httpsUrl, str),
       streetView: raw.streetView && raw.streetView.off === true ? { off: true } : raw.streetView ? clean({ lat: Number(raw.streetView.lat), lng: Number(raw.streetView.lng), heading: Number(raw.streetView.heading) || 0, pitch: Number(raw.streetView.pitch) || 0, fov: Number(raw.streetView.fov) || 75 }) : null,
       featured: raw.featured === true,
@@ -118,7 +137,9 @@
   const store = {
     async all({ includeDrafts = false } = {}) {
       const map = new Map(seed().map((l) => [l.id, l]));
-      (await adapter.listLocal()).forEach((l) => map.set(l.id, l));
+      // Local admin edits win, but published fields the local copy doesn't have yet
+      // (e.g. a floor plan added later) still come through from the seed.
+      (await adapter.listLocal()).forEach((l) => map.set(l.id, map.has(l.id) ? Object.assign({}, map.get(l.id), l) : l));
       let list = [...map.values()].filter((l) => !l.deleted);
       if (!includeDrafts) list = list.filter((l) => l.published !== false);
       return list.sort((a, b) => (b.featured === true) - (a.featured === true) || (b.updatedAt || 0) - (a.updatedAt || 0));
@@ -139,7 +160,7 @@
       const existing = await store.get(id);
       if (!existing) return;
       const panoRefs = existing.pano && Array.isArray(existing.pano.scenes) ? existing.pano.scenes.map((sc) => sc.ref) : [];
-      const refs = [...(existing.photos || []), existing.video && existing.video.ref, ...panoRefs].filter(Boolean);
+      const refs = [...(existing.photos || []), existing.video && existing.video.ref, existing.plan && existing.plan.image, ...panoRefs].filter(Boolean);
       await Promise.all(refs.filter((r) => String(r).startsWith('idb:')).map((r) => adapter.deleteMedia(r.slice(4)).catch(() => {})));
       const isSeed = seed().some((l) => l.id === id);
       if (isSeed) await adapter.putListing({ id, deleted: true, updatedAt: Date.now() });
@@ -173,6 +194,7 @@
         (l.photos || []).forEach((p) => refs.add(p));
         if (l.video && l.video.ref) refs.add(l.video.ref);
         if (l.pano && Array.isArray(l.pano.scenes)) l.pano.scenes.forEach((s) => refs.add(s.ref));
+        if (l.plan && l.plan.image) refs.add(l.plan.image);
       });
       const media = {};
       for (const ref of refs) {
@@ -194,6 +216,7 @@
           const scenes = c.pano.scenes.filter((sc) => !String(sc.ref).startsWith('idb:'));
           c.pano = scenes.length ? Object.assign({}, c.pano, { scenes }) : null;
         }
+        if (c.plan && c.plan.image && String(c.plan.image).startsWith('idb:')) c.plan = null;
         c.rooms = Object.fromEntries(Object.entries(c.rooms || {}).filter(([p]) => c.photos.includes(p)));
         if (c.video && c.video.ref && String(c.video.ref).startsWith('idb:')) c.video = null;
         return c;
