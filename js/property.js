@@ -165,6 +165,7 @@
             '<div><b>' + (tour || hasPano ? '3D' : photos.length || '—') + '</b><span>' + (tour || hasPano ? 'Walk-through' : 'Photos') + '</span></div>' +
           '</div>' +
           '<section class="prop-section"><h2>About this <em style="color:var(--forest)">home</em></h2><p class="prop-desc reveal">' + esc(l.description || 'Contact us for details about this home.') + '</p></section>' +
+          (l.plan && window.VerdantPlan ? '<section class="prop-section" id="floorplan" data-plan></section>' : '') +
           tourHTML + videoHTML +
           (features.length ? '<section class="prop-section"><h2>Features</h2><ul class="feat-grid reveal" role="list">' + features.map((f) => '<li>' + esc(f) + '</li>').join('') + '</ul></section>' : '') +
           (details.length ? '<section class="prop-section"><h2>Details</h2><dl class="detail-table reveal">' + details.map((d) => '<div><dt>' + esc(d[0]) + '</dt><dd>' + esc(d[1]) + '</dd></div>').join('') + '</dl></section>' : '') +
@@ -283,6 +284,37 @@
     if (svf) svf.querySelector('.tour-launch').addEventListener('click', () => {
       svf.innerHTML = '<iframe src="' + esc(svf.dataset.sv) + '" title="Google Street View of ' + esc(l.address) + '" allow="fullscreen" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>';
     });
+
+    /* ---------- Floor plan: rooms link to photos and the 3D tour ---------- */
+    const planEl = mount.querySelector('[data-plan]');
+    if (planEl) {
+      const scenes = window.VerdantTour && VerdantTour.has(l) ? VerdantTour.scenesOf(l.pano) : [];
+      VerdantPlan.mount(planEl, l, {
+        hasPhotos: (label) => rooms.includes(label),
+        hasScene: (name) => scenes.some((s) => s.room === name),
+        photos: (label) => {
+          const i = rooms.indexOf(label);
+          const r = mount.querySelector('[data-reel]');
+          if (i < 0 || !r) return;
+          r.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          if (reelGo) reelGo(i);
+        },
+        tour: (name) => {
+          const sc = scenes.find((s) => s.room === name);
+          const frame = mount.querySelector('[data-pano]');
+          if (!sc || !frame) return;
+          frame.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          const launch = frame.querySelector('.tour-launch');
+          if (launch) launch.click();
+          // Wait for the viewer's room tabs, then jump to the room.
+          let tries = 0;
+          const t = setInterval(() => {
+            const tab = mount.querySelector('[data-pano-rooms] [data-pn-go="' + sc.id + '"]');
+            if (tab || ++tries > 60) { clearInterval(t); if (tab) setTimeout(() => tab.click(), 400); }
+          }, 250);
+        }
+      });
+    }
 
     /* ---------- 360° tour (Pannellum) loads on demand ---------- */
     const pf = mount.querySelector('[data-pano]');

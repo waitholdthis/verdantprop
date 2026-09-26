@@ -60,6 +60,7 @@ const listings = bundle.listings.map((raw) => {
     l.pano.scenes = l.pano.scenes.map((s, i) => Object.assign({}, s, { ref: place(s.ref, '360-' + String(i + 1).padStart(2, '0') + '-' + (s.room || 'room')) })).filter((s) => s.ref);
     if (!l.pano.scenes.length) l.pano = null;
   }
+  if (l.plan && l.plan.image) { const img = place(l.plan.image, 'floor-plan'); l.plan = img ? Object.assign({}, l.plan, { image: img }) : null; }
   delete l.source;
   return l;
 });

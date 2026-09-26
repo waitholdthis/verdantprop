@@ -196,6 +196,33 @@
             </div>
           </section>
 
+          <section class="ad-card" data-fp-card>
+            <div class="ad-card-head"><h2>Floor plan</h2><span class="ad-hint" data-fp-status></span></div>
+            <div class="ad-seg" data-fp-mode><label><input type="radio" name="fpMode" value="draw" /><span>Draw / edit</span></label><label><input type="radio" name="fpMode" value="image" /><span>Upload an image</span></label><label><input type="radio" name="fpMode" value="none" checked /><span>None</span></label></div>
+
+            <div class="mt-2" data-fp-draw hidden>
+              <div class="ad-fp-bar">
+                <button class="btn btn--sm" type="button" data-fp-add="room">+ Room</button>
+                <button class="btn btn--ghost btn--sm" type="button" data-fp-add="door">+ Door</button>
+                <button class="btn btn--ghost btn--sm" type="button" data-fp-add="window">+ Window</button>
+                <select data-fp-add-fixture aria-label="Add a fixture"><option value="">+ Fixture&hellip;</option><option value="counter">Counter</option><option value="fireplace">Fireplace</option><option value="closet">Closet</option></select>
+                <button class="btn btn--ghost btn--sm" type="button" data-fp-starter>Start from 3D tour rooms</button>
+                <label class="ad-switch ad-fp-illus"><input type="checkbox" data-fp-illus checked /><span></span>Illustrative (not measured)</label>
+              </div>
+              <div class="ad-fp">
+                <div class="ad-fp-canvas" data-fp-canvas></div>
+                <div class="ad-fp-props" data-fp-props><p class="ad-hint">Click a room, door, window, or fixture to edit it. Drag to move; drag a room&rsquo;s gold corner to resize. Measurements are in feet.</p></div>
+              </div>
+              <div class="ad-fp-size"><span class="ad-hint">Plan area (feet):</span><label>Width <input type="number" min="10" max="200" step="1" data-fp-w /></label><label>Depth <input type="number" min="10" max="200" step="1" data-fp-h /></label></div>
+            </div>
+
+            <div class="mt-2" data-fp-image hidden>
+              <label class="ad-drop ad-drop--sm"><input type="file" accept="image/*" hidden data-fp-file /><strong>Choose a floor plan image</strong><span>PNG or JPG exported from Polycam, magicplan, CubiCasa, or similar</span></label>
+              <label class="ad-switch mt-1"><input type="checkbox" data-fp-img-illus /><span></span>Mark as &ldquo;not to scale&rdquo;</label>
+              <div class="ad-fp-img mt-1" data-fp-img-prev></div>
+            </div>
+          </section>
+
           <section class="ad-card">
             <div class="ad-card-head"><h2>Map location</h2><span class="ad-hint" data-geo-status></span></div>
             <p class="ad-hint" style="margin-bottom:1rem">Powers the neighborhood explorer, travel times, and the Residences map. We look up the address automatically; drag the pin to fine-tune.</p>
@@ -239,6 +266,7 @@
   <script src="js/data.js"></script>
   <script src="js/bah.js"></script>
   <script src="js/tour.js"></script>
+  <script src="js/floorplan.js"></script>
   <script src="js/explore.js"></script>
   <script src="js/admin.js"></script>
 </body>

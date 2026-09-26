@@ -586,6 +586,216 @@
     setCoords(l.lat, l.lng);
     placePin(l.lat && Number(l.lat), l.lng && Number(l.lng));
 
+
+    /* Floor plan editor */
+    const FP = window.VerdantPlan;
+    const fpCard = view.querySelector('[data-fp-card]');
+    const fp = {
+      plan: l.plan && !l.plan.image ? JSON.parse(JSON.stringify(l.plan)) : null,
+      image: l.plan && l.plan.image ? l.plan.image : null,
+      imageIllus: !!(l.plan && l.plan.image && l.plan.illustrative),
+      sel: null, // { kind: 'rooms'|'doors'|'windows'|'fixtures', i }
+      added: null
+    };
+    const fpCanvas = fpCard.querySelector('[data-fp-canvas]');
+    const fpProps = fpCard.querySelector('[data-fp-props]');
+    const fpStatus = fpCard.querySelector('[data-fp-status]');
+    const fpMode = () => fpCard.querySelector('input[name="fpMode"]:checked').value;
+    fpCard.querySelectorAll('input[name="fpMode"]').forEach((r) => { r.checked = r.value === (fp.image ? 'image' : fp.plan ? 'draw' : 'none'); });
+    const snap = (v) => Math.round(v * 2) / 2;
+    const blank = () => ({ illustrative: true, w: 40, h: 30, rooms: [], doors: [], windows: [], fixtures: [] });
+    const ensure = () => { if (!fp.plan) fp.plan = blank(); ['rooms', 'doors', 'windows', 'fixtures'].forEach((k) => { fp.plan[k] = fp.plan[k] || []; }); return fp.plan; };
+
+    // Rooms that photos and the 3D tour know about, for the link dropdowns.
+    const photoRooms = () => [...new Set(Object.values(state.rooms || {}).filter(Boolean))];
+    const tourRooms = () => (pano.scenes || []).map((s, i) => T.roomName(s, i));
+
+    const drawFP = () => {
+      const plan = ensure();
+      fpCard.querySelector('[data-fp-w]').value = plan.w;
+      fpCard.querySelector('[data-fp-h]').value = plan.h;
+      fpCard.querySelector('[data-fp-illus]').checked = plan.illustrative !== false;
+      let svg = FP.svg(plan);
+      // Editing overlay: hit areas for every element plus a resize handle on the selected room.
+      const PAD = 3, X = (x) => x + PAD, Y = (y) => plan.h - y + PAD;
+      let ov = '<g class="fpe">';
+      const box = (kind, i, x, y, w, h) => '<rect class="fpe-hit fpe-' + kind + (fp.sel && fp.sel.kind === kind && fp.sel.i === i ? ' on' : '') + '" data-k="' + kind + '" data-i="' + i + '" x="' + X(x) + '" y="' + Y(y + h) + '" width="' + Math.max(w, 0.8) + '" height="' + Math.max(h, 0.8) + '"/>';
+      plan.rooms.forEach((r, i) => { ov += box('rooms', i, r.x, r.y, r.w, r.h); });
+      plan.fixtures.forEach((f, i) => { ov += box('fixtures', i, f.x, f.y, f.w, f.h); });
+      const lineBox = (kind, i, o) => (o.dir === 'h' ? box(kind, i, o.x, o.y - 0.6, o.len, 1.2) : box(kind, i, o.x - 0.6, o.y, 1.2, o.len));
+      plan.windows.forEach((w, i) => { ov += lineBox('windows', i, w); });
+      plan.doors.forEach((d, i) => { ov += lineBox('doors', i, d); });
+      if (fp.sel && (fp.sel.kind === 'rooms' || fp.sel.kind === 'fixtures')) {
+        const o = plan[fp.sel.kind][fp.sel.i];
+        if (o) ov += '<circle class="fpe-handle" data-handle="1" cx="' + X(o.x + o.w) + '" cy="' + Y(o.y) + '" r=".9"/>';
+      }
+      ov += '</g>';
+      svg = svg.replace('</svg>', ov + '</svg>').replace('class="fp-svg"', 'class="fp-svg fp-svg--edit"');
+      fpCanvas.innerHTML = svg;
+      drawProps();
+      fpStatus.textContent = plan.rooms.length + (plan.rooms.length === 1 ? ' room' : ' rooms');
+    };
+
+    const opt = (list, v, empty) => '<option value="">' + empty + '</option>' + list.map((x) => '<option' + (x === v ? ' selected' : '') + '>' + esc(x) + '</option>').join('');
+    const num = (k, v, label, step) => '<label>' + label + '<input type="number" step="' + (step || 0.5) + '" data-p="' + k + '" value="' + v + '"></label>';
+    function drawProps() {
+      const s = fp.sel && fp.plan[fp.sel.kind] && fp.plan[fp.sel.kind][fp.sel.i];
+      if (!s) { fpProps.innerHTML = '<p class="ad-hint">Click a room, door, window, or fixture to edit it. Drag to move; drag a room&rsquo;s gold corner to resize. Measurements are in feet.</p>'; return; }
+      const k = fp.sel.kind;
+      let html = '<p class="ad-fp-k">' + ({ rooms: 'Room', doors: 'Door', windows: 'Window', fixtures: 'Fixture' })[k] + '</p>';
+      if (k === 'rooms') {
+        html += '<label class="ad-fp-wide">Name<input data-p="label" maxlength="30" value="' + esc(s.label || '') + '"></label>' +
+          '<label class="ad-fp-wide">Shows photos of<select data-p="photos">' + opt(photoRooms(), s.photos, 'No link') + '</select></label>' +
+          '<label class="ad-fp-wide">Opens 3D tour room<select data-p="scene">' + opt(tourRooms(), s.scene, 'No link') + '</select></label>' +
+          num('x', s.x, 'Left') + num('y', s.y, 'Front') + num('w', s.w, 'Width') + num('h', s.h, 'Depth') +
+          '<label class="ad-fp-check"><input type="checkbox" data-p="outdoor"' + (s.outdoor ? ' checked' : '') + '> Outdoor (deck, porch)</label>';
+      } else if (k === 'doors' || k === 'windows') {
+        html += (k === 'doors' ? '<label class="ad-fp-wide">Type<select data-p="kind">' + ['door', 'exterior', 'opening'].map((t) => '<option value="' + t + '"' + (s.kind === t ? ' selected' : '') + '>' + ({ door: 'Interior door', exterior: 'Exterior door', opening: 'Open doorway' })[t] + '</option>').join('') + '</select></label>' : '') +
+          '<label class="ad-fp-wide">Runs<select data-p="dir"><option value="h"' + (s.dir === 'h' ? ' selected' : '') + '>Left to right</option><option value="v"' + (s.dir === 'v' ? ' selected' : '') + '>Front to back</option></select></label>' +
+          num('x', s.x, 'Left') + num('y', s.y, 'Front') + num('len', s.len, 'Length') +
+          (k === 'doors' ? '<label class="ad-fp-check"><input type="checkbox" data-p="flip"' + (s.flip ? ' checked' : '') + '> Swing the other way</label>' : '');
+      } else {
+        html += '<label class="ad-fp-wide">Type<select data-p="type">' + ['counter', 'fireplace', 'closet'].map((t) => '<option' + (s.type === t ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></label>' +
+          num('x', s.x, 'Left') + num('y', s.y, 'Front') + num('w', s.w, 'Width') + num('h', s.h, 'Depth');
+      }
+      html += '<div class="ad-fp-acts"><button type="button" class="btn btn--ghost btn--sm" data-fp-dup>Duplicate</button><button type="button" class="btn btn--ghost btn--sm ad-fp-del" data-fp-del>Delete</button></div>';
+      fpProps.innerHTML = html;
+    }
+
+    fpProps.addEventListener('input', (e) => {
+      const k = e.target.dataset.p;
+      const s = fp.sel && fp.plan[fp.sel.kind][fp.sel.i];
+      if (!k || !s) return;
+      if (e.target.type === 'checkbox') s[k] = e.target.checked;
+      else if (e.target.type === 'number') { const v = Number(e.target.value); if (!isFinite(v)) return; s[k] = k === 'w' || k === 'h' || k === 'len' ? Math.max(0.5, v) : v; }
+      else s[k] = e.target.value;
+      changed();
+      const keep = document.activeElement && document.activeElement.dataset.p;
+      const caret = e.target.selectionStart;
+      drawFP();
+      if (keep) { const el = fpProps.querySelector('[data-p="' + keep + '"]'); if (el) { el.focus(); try { if (caret != null) el.setSelectionRange(caret, caret); } catch (x) { /* number inputs */ } } }
+    });
+    fpProps.addEventListener('click', (e) => {
+      if (!fp.sel) return;
+      const list = fp.plan[fp.sel.kind];
+      if (e.target.closest('[data-fp-del]')) { list.splice(fp.sel.i, 1); fp.sel = null; changed(); drawFP(); }
+      if (e.target.closest('[data-fp-dup]')) {
+        const c = JSON.parse(JSON.stringify(list[fp.sel.i]));
+        c.x += 2; c.y += 2; if (c.id) c.id = V.uid('rm');
+        list.push(c); fp.sel = { kind: fp.sel.kind, i: list.length - 1 }; changed(); drawFP();
+      }
+    });
+
+    // Drag to move; drag the handle to resize (rooms and fixtures).
+    let drag = null;
+    const toPlan = (ev) => {
+      const svgEl = fpCanvas.querySelector('svg');
+      const pt = svgEl.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
+      const p = pt.matrixTransform(svgEl.getScreenCTM().inverse());
+      return { x: p.x - 3, y: fp.plan.h - (p.y - 3) };
+    };
+    fpCanvas.addEventListener('pointerdown', (e) => {
+      const handle = e.target.closest('[data-handle]');
+      const hit = e.target.closest('.fpe-hit');
+      if (!handle && !hit) { fp.sel = null; drawFP(); return; }
+      if (hit) fp.sel = { kind: hit.dataset.k, i: Number(hit.dataset.i) };
+      const o = fp.plan[fp.sel.kind][fp.sel.i];
+      const p = toPlan(e);
+      drag = { mode: handle ? 'resize' : 'move', start: p, orig: JSON.parse(JSON.stringify(o)), moved: false };
+      fpCanvas.setPointerCapture(e.pointerId);
+      drawFP();
+      e.preventDefault();
+    });
+    fpCanvas.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const p = toPlan(e);
+      const dx = snap(p.x - drag.start.x), dy = snap(p.y - drag.start.y);
+      if (!dx && !dy && !drag.moved) return;
+      drag.moved = true;
+      const o = fp.plan[fp.sel.kind][fp.sel.i];
+      if (drag.mode === 'move') { o.x = drag.orig.x + dx; o.y = drag.orig.y + dy; }
+      else { o.w = Math.max(1, drag.orig.w + dx); const nh = Math.max(1, drag.orig.h - dy); o.y = drag.orig.y + drag.orig.h - nh; o.h = nh; }
+      drawFP();
+    });
+    const endDrag = () => { if (drag && drag.moved) changed(); drag = null; };
+    fpCanvas.addEventListener('pointerup', endDrag);
+    fpCanvas.addEventListener('pointercancel', endDrag);
+
+    fpCard.querySelectorAll('[data-fp-add]').forEach((b) => b.addEventListener('click', () => {
+      const plan = ensure();
+      const kind = b.dataset.fpAdd;
+      const cx = snap(plan.w / 2), cy = snap(plan.h / 2);
+      if (kind === 'room') { plan.rooms.push({ id: V.uid('rm'), label: 'New room', x: cx - 5, y: cy - 4, w: 10, h: 8 }); fp.sel = { kind: 'rooms', i: plan.rooms.length - 1 }; }
+      if (kind === 'door') { plan.doors.push({ x: cx, y: cy, len: 3, dir: 'h', kind: 'door' }); fp.sel = { kind: 'doors', i: plan.doors.length - 1 }; }
+      if (kind === 'window') { plan.windows.push({ x: cx, y: cy, len: 4, dir: 'h' }); fp.sel = { kind: 'windows', i: plan.windows.length - 1 }; }
+      changed(); drawFP();
+    }));
+    fpCard.querySelector('[data-fp-add-fixture]').addEventListener('change', (e) => {
+      const type = e.target.value;
+      if (!type) return;
+      const plan = ensure();
+      const size = { counter: [6, 2], fireplace: [4, 1.5], closet: [2, 6] }[type];
+      plan.fixtures.push({ type, x: snap(plan.w / 2), y: snap(plan.h / 2), w: size[0], h: size[1] });
+      fp.sel = { kind: 'fixtures', i: plan.fixtures.length - 1 };
+      e.target.value = '';
+      changed(); drawFP();
+    });
+    // Starter layout: one box per 3D tour room, linked to its photos and tour room, ready to arrange.
+    fpCard.querySelector('[data-fp-starter]').addEventListener('click', () => {
+      const names = tourRooms();
+      if (!names.length) { toast('Add a 3D tour first, or use + Room'); return; }
+      if (fp.plan && fp.plan.rooms.length && !confirm('Replace the current floor plan with a starter layout?')) return;
+      const photos = photoRooms();
+      const match = (n) => photos.find((p) => p.toLowerCase() === n.toLowerCase()) || photos.find((p) => p.toLowerCase().includes(n.toLowerCase().replace(/^master /, 'primary ').split(' ')[0])) || '';
+      const cols = Math.ceil(Math.sqrt(names.length));
+      fp.plan = blank();
+      fp.plan.w = cols * 12; fp.plan.h = Math.ceil(names.length / cols) * 11;
+      names.forEach((n, i) => {
+        const outdoor = /outside|deck|patio|porch|yard/i.test(n);
+        fp.plan.rooms.push({ id: V.uid('rm'), label: n, x: (i % cols) * 12 + 1, y: Math.floor(i / cols) * 11 + 1, w: 10, h: 9, photos: match(n), scene: n, outdoor });
+      });
+      fp.sel = null;
+      changed(); drawFP();
+      toast('Starter layout added. Drag the rooms into place.');
+    });
+    fpCard.querySelector('[data-fp-illus]').addEventListener('change', (e) => { ensure().illustrative = e.target.checked; changed(); drawFP(); });
+    ['w', 'h'].forEach((k) => fpCard.querySelector('[data-fp-' + k + ']').addEventListener('change', (e) => { const v = Number(e.target.value); if (v >= 10 && v <= 200) { ensure()[k] = v; changed(); drawFP(); } }));
+    document.addEventListener('keydown', (e) => {
+      if (!fp.sel || !fpCard.isConnected || /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) return;
+      if (e.key === 'Delete' || e.key === 'Backspace') { fp.plan[fp.sel.kind].splice(fp.sel.i, 1); fp.sel = null; changed(); drawFP(); e.preventDefault(); }
+    });
+
+    // Image plans
+    const fpImgPrev = fpCard.querySelector('[data-fp-img-prev]');
+    const drawImg = async () => { fpImgPrev.innerHTML = fp.image ? '<img src="' + esc(await V.store.resolve(fp.image)) + '" alt="Floor plan">' : ''; };
+    fpCard.querySelector('[data-fp-file]').addEventListener('change', async (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      if (fp.added) await V.store.deleteMedia(fp.added);
+      fp.image = fp.added = await V.store.putMedia(await optimize(f), f.name);
+      e.target.value = '';
+      changed(); drawImg();
+    });
+    const fpImgIllus = fpCard.querySelector('[data-fp-img-illus]');
+    fpImgIllus.checked = fp.imageIllus;
+    fpImgIllus.addEventListener('change', () => { fp.imageIllus = fpImgIllus.checked; changed(); });
+
+    const syncFP = () => {
+      const m = fpMode();
+      fpCard.querySelector('[data-fp-draw]').hidden = m !== 'draw';
+      fpCard.querySelector('[data-fp-image]').hidden = m !== 'image';
+      fpStatus.textContent = '';
+      if (m === 'draw') drawFP();
+      if (m === 'image') drawImg();
+    };
+    fpCard.querySelector('[data-fp-mode]').addEventListener('change', () => { changed(); syncFP(); });
+    const collectPlan = () => {
+      const m = fpMode();
+      if (m === 'draw' && fp.plan && fp.plan.rooms.length) return JSON.parse(JSON.stringify(fp.plan));
+      if (m === 'image' && fp.image) return { image: fp.image, illustrative: fp.imageIllus };
+      return null;
+    };
+
     /* Nearby places (OpenStreetMap snapshot) */
     const nb = { items: (l.nearby || []).slice(), hidden: new Set(l.nearbyHidden || []), refreshed: false };
     const nbList = view.querySelector('[data-nb-list]');
@@ -686,6 +896,7 @@
         tour: tourMode() === 'url' && tUrl ? { url: tUrl } : null,
         pano: tourMode() === 'pano' && pano.scenes.length ? JSON.parse(JSON.stringify({ first: pano.first || pano.scenes[0].id, scenes: pano.scenes })) : null,
         lat: num(f.lat.value), lng: num(f.lng.value),
+        plan: collectPlan(),
         nearby: nb.items.slice(),
         nearbyHidden: [...nb.hidden],
         streetView: !f.svOn.checked ? { off: true } : (V.streetView.parse(f.svLink.value) || svState.custom || null),
@@ -738,6 +949,7 @@
       }
       // Drop a replaced uploaded video
       if (existing && existing.video && existing.video.ref && (!d.video || d.video.ref !== existing.video.ref)) await V.store.deleteMedia(existing.video.ref);
+      if (existing && existing.plan && existing.plan.image && (!d.plan || d.plan.image !== existing.plan.image)) await V.store.deleteMedia(existing.plan.image);
       const keptPano = new Set(((d.pano && d.pano.scenes) || []).map((sc) => sc.ref));
       const oldPano = ((existing && existing.pano && existing.pano.scenes) || []).map((sc) => sc.ref);
       const removed = ((existing && existing.photos) || []).filter((p) => !d.photos.includes(p)).concat(oldPano.filter((r) => !keptPano.has(r)), [...panoAdded].filter((r) => !keptPano.has(r)));
@@ -779,6 +991,7 @@
     syncTourMode();
     drawSV();
     drawNearby();
+    syncFP();
     dirty = false;
     form.elements.address.focus({ preventScroll: true });
   }
