@@ -44,7 +44,7 @@
 
   // Destinations that matter to people living in Fayetteville.
   const PRESETS = [
-    { name: 'Fort Bragg', sub: 'Womack Army Medical Center', icon: 'base', lat: 35.1459947, lng: -79.0024331 },
+    { name: 'Womack Army Medical Center', sub: 'Fort Bragg', icon: 'hospital', lat: 35.1459947, lng: -79.0024331 },
     { name: 'Pope Army Airfield', sub: 'Fort Bragg', icon: 'plane', lat: 35.1734655, lng: -79.0180408 },
     { name: 'Downtown Fayetteville', sub: 'Market House', icon: 'downtown', lat: 35.0525691, lng: -78.8783039 },
     { name: 'Cape Fear Valley Medical Center', sub: 'Owen Drive', icon: 'hospital', lat: 35.0313519, lng: -78.9335603 },
@@ -142,6 +142,84 @@
 
   const fmtMin = (sec) => (sec == null ? '—' : sec < 3600 ? Math.max(1, Math.round(sec / 60)) + ' min' : Math.floor(sec / 3600) + ' hr ' + Math.round((sec % 3600) / 60) + ' min');
   const fmtMi = (m) => (m == null ? '' : (m / 1609.34).toFixed(m < 16093 ? 1 : 0) + ' mi');
+
+  /* ---------- Fort Bragg gate commute ---------- */
+  // Gate numbers, names, and hours from the official Fort Bragg access control page
+  // (home.army.mil/bragg, last modified 2026-07-27). Positions from OpenStreetMap access-control
+  // points, or where the gate road crosses the installation boundary. Gate 1 (Longstreet) is
+  // omitted until its position can be confirmed. Review hours whenever the Army posts changes.
+  const GATES_CHECKED = '2026-09-26';
+  const GATES = [
+    { no: '4', name: 'Yadkin Road', lat: 35.10785, lng: -78.99738, hours: '24/7' },
+    { no: '10', name: 'Honeycutt Road', lat: 35.14464, lng: -78.95563, hours: '24/7' },
+    { no: '11', name: 'R. Miller Road', aka: 'Randolph St', lat: 35.1534, lng: -78.9669, hours: '24/7' },
+    { no: '19', name: 'Canopy Lane', lat: 35.1096, lng: -79.01553, hours: '24/7' },
+    { no: '2', name: 'Chicken Road', lat: 35.1006, lng: -79.0238, hours: '24/7' },
+    { no: '3', name: 'Rock Merritt', aka: 'Reilly Rd', lat: 35.10527, lng: -79.00818, hours: 'weekdays' },
+    { no: '12', name: 'Butner Road', lat: 35.15942, lng: -78.97397, hours: 'weekdays' },
+    { no: '18', name: 'Manchester Road', aka: 'to Pope', lat: 35.17768, lng: -79.02158, hours: 'weekdays' },
+    { no: '5', name: 'All American', lat: 35.12356, lng: -78.97945, hours: 'closed', note: 'Closed for the Gruber Road bridge replacement' }
+  ];
+  const GATE_HOURS = { '24/7': 'Open 24/7', weekdays: 'Weekdays 5 a.m.–9 p.m.', closed: 'Temporarily closed' };
+
+  // Is a gate open right now, in Fayetteville's time zone? (Federal holidays not included.)
+  function gateOpenNow(g, when) {
+    if (g.hours === '24/7') return true;
+    if (g.hours === 'closed') return false;
+    const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', hour12: false }).formatToParts(when || new Date());
+    const day = parts.find((p) => p.type === 'weekday').value;
+    const hour = Number(parts.find((p) => p.type === 'hour').value) % 24;
+    return !/Sat|Sun/.test(day) && hour >= 5 && hour < 21;
+  }
+
+  // Drive time from a home to every usable gate: [{ no, name, sec, m }], fastest first.
+  async function gateTimes(home) {
+    const usable = GATES.filter((g) => g.hours !== 'closed');
+    const times = await driveTimes(home, usable);
+    return usable.map((g, i) => ({ no: g.no, sec: Math.round(times[i].sec), m: Math.round(times[i].m) }))
+      .filter((t) => isFinite(t.sec)).sort((a, b) => a.sec - b.sec);
+  }
+
+  function gateRows(times, home) {
+    const byNo = Object.fromEntries(GATES.map((g) => [g.no, g]));
+    const rows = times.map((t) => ({ g: byNo[t.no], t })).filter((r) => r.g)
+      .concat(GATES.filter((g) => g.hours === 'closed').map((g) => ({ g, t: null })));
+    const dir = (g) => 'https://www.google.com/maps/dir/?api=1&origin=' + home.lat + ',' + home.lng + '&destination=' + g.lat + ',' + g.lng + '&travelmode=driving';
+    return rows.map(({ g, t }) => {
+      const open = gateOpenNow(g);
+      return '<li class="gt-row' + (g.hours === 'closed' ? ' is-closed' : '') + '">' +
+        '<span class="gt-no">' + esc(g.no) + '</span>' +
+        '<span class="gt-name"><strong>' + esc(g.name) + ' Gate</strong><small>' + (g.aka ? esc(g.aka) + ' &middot; ' : '') + esc(GATE_HOURS[g.hours]) + (g.note ? ' &middot; ' + esc(g.note) : '') + '</small></span>' +
+        '<span class="gt-status ' + (open ? 'is-open' : 'is-shut') + '">' + (open ? 'Open now' : 'Closed now') + '</span>' +
+        '<span class="tt-time">' + (t ? '<b>' + fmtMin(t.sec) + '</b><small>' + fmtMi(t.m) + '</small>' : '<b>&mdash;</b>') + '</span>' +
+        (g.hours !== 'closed' ? '<a class="ex-btn ex-btn--sm" href="' + dir(g) + '" target="_blank" rel="noopener" aria-label="Directions to the ' + esc(g.name) + ' Gate">' + V.icon.car + '</a>' : '<span></span>') +
+      '</li>';
+    }).join('');
+  }
+
+  // Renders the "Getting on post" section. Uses the listing's saved gate times when present.
+  async function mountGates(section, l, home) {
+    section.innerHTML = '<h2>Getting on <em style="color:var(--forest)">post</em></h2>' +
+      '<p class="ex-lede">Drive times from ' + esc(l.address) + ' to each Fort Bragg gate, and which gates are open right now.</p>' +
+      '<div class="gt" data-gt><div class="gt-best" data-gt-best><p class="ex-status">Timing the drive to each gate&hellip;</p></div><ol class="gt-list" role="list" data-gt-list></ol>' +
+      '<p class="ex-credit">Drive times are typical, without traffic; allow extra time for gate lines at morning rush. Gate hours from Fort Bragg&rsquo;s <a href="https://home.army.mil/bragg/about/visitor-information" target="_blank" rel="noopener">access control page</a> (checked ' + GATES_CHECKED + ') and can change for exercises and holidays. Visitors without a DoD ID must use the All American Visitor Control Center.</p></div>';
+    const best = section.querySelector('[data-gt-best]');
+    const list = section.querySelector('[data-gt-list]');
+    let times = Array.isArray(l.gates) && l.gates.length ? l.gates : null;
+    if (!times) {
+      try { times = await gateTimes(home); } catch (e) { best.innerHTML = '<p class="ex-status">Drive times are unavailable right now.</p>'; times = []; }
+    }
+    list.innerHTML = gateRows(times, home);
+    const byNo = Object.fromEntries(GATES.map((g) => [g.no, g]));
+    const openNow = times.find((t) => byNo[t.no] && gateOpenNow(byNo[t.no]));
+    const any = times[0];
+    if (openNow) {
+      const g = byNo[openNow.no];
+      best.innerHTML = '<span class="gt-best-k">Fastest open gate now</span><p class="gt-best-v"><b>' + fmtMin(openNow.sec) + '</b> to the ' + esc(g.name) + ' Gate <span>(Gate ' + esc(g.no) + ')</span></p>' +
+        (any && any.no !== openNow.no ? '<p class="gt-best-note">On weekdays, the ' + esc(byNo[any.no].name) + ' Gate is closer: ' + fmtMin(any.sec) + '.</p>' : '');
+    } else if (times.length) best.innerHTML = '<p class="ex-status">No gates appear open right now.</p>';
+  }
+
   const fmtDist = (mi) => (mi < 0.1 ? '< 0.1 mi' : mi.toFixed(1) + ' mi');
 
   function markup(l) {
@@ -338,6 +416,9 @@
   }
 
   window.VerdantExplore = {
+    mountGates,
+    gateTimes,
+    GATES,
     // Mounts lazily, when the section approaches the viewport.
     lazy(section, l, home) {
       if (!('IntersectionObserver' in window)) return mount(section, l, home);

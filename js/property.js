@@ -120,6 +120,9 @@
 
     // Google Street View loads only on request: it's heavy and contacts Google.
     const sv = V.streetView.of(l);
+    const floodHTML = l.lat && l.lng
+      ? '<section class="prop-section" id="flood"><h2>Flood <em style="color:var(--forest)">zone</em></h2><div class="flood reveal" data-flood><p class="ex-status">Checking FEMA flood maps&hellip;</p></div></section>'
+      : '';
     const streetHTML = sv
       ? '<section class="prop-section" id="street"><h2>From the <em style="color:var(--forest)">street</em></h2>' +
         '<div class="media-frame sv-frame reveal" data-sv="' + esc(V.streetView.embed(sv)) + '">' +
@@ -166,7 +169,9 @@
           (features.length ? '<section class="prop-section"><h2>Features</h2><ul class="feat-grid reveal" role="list">' + features.map((f) => '<li>' + esc(f) + '</li>').join('') + '</ul></section>' : '') +
           (details.length ? '<section class="prop-section"><h2>Details</h2><dl class="detail-table reveal">' + details.map((d) => '<div><dt>' + esc(d[0]) + '</dt><dd>' + esc(d[1]) + '</dd></div>').join('') + '</dl></section>' : '') +
           mortgageHTML +
+          floodHTML +
           streetHTML +
+          '<section class="prop-section" id="commute" data-gates></section>' +
           '<section class="prop-section" id="neighborhood" data-explore style="min-height:32rem"></section>' +
         '</div>' +
         '<aside class="aside-card reveal" aria-label="Schedule or inquire">' +
@@ -175,7 +180,8 @@
           '<p>See it in person, or ask for a live video walk-through if you&rsquo;re relocating.</p>' +
           '<a class="btn btn--block" href="' + SCHEDULER + '" target="_blank" rel="noopener">Schedule a showing ' + V.icon.arrow + '</a>' +
           '<a class="btn btn--ghost btn--block" href="' + inquireHref + '">Ask a question</a>' +
-          '<div class="verified">' + V.icon.shield + '<span><strong style="color:var(--ink);font-weight:500">Verified listing.</strong> Managed by Verdant Properties, NC Firm #C40094. We will never ask you to wire money or pay before touring.</span></div>' +
+          (V.bah && V.bah.monthly(l) != null ? '<div class="bah-box" data-bah-box><p class="bah-box-k">BAH check &middot; Fort Bragg ' + V.bah.YEAR + '</p>' + V.bah.picker('bah-prop') + '<p class="bah-box-out" data-bah-out></p></div>' : '') +
+          '<div class="verified">' + V.icon.shield + '<span><strong style="color:var(--ink);font-weight:500">Verified listing.</strong> Managed by Verdant Properties, NC Firm #C40094. We will never ask you to wire money or pay before touring. <a href="verify.html" style="color:var(--forest);text-decoration:underline">Check a suspicious ad</a></span></div>' +
           '<div class="aside-agent"><img src="assets/img/jenn-tapia-avatar.webp" alt="" width="54" height="54" loading="lazy"><div><strong>Jennifer Tapia</strong><a href="tel:+19109226519">(910) 922-6519</a></div></div>' +
         '</aside>' +
       '</div></section>' +
@@ -194,6 +200,22 @@
       h1.classList.add('splitw');
     }
     window.VerdantReveal && window.VerdantReveal(mount);
+
+    /* ---------- BAH check ---------- */
+    const bahBox = mount.querySelector('[data-bah-box]');
+    if (bahBox) {
+      const out = bahBox.querySelector('[data-bah-out]');
+      const draw = () => {
+        const m = V.bah.match(l);
+        out.className = 'bah-box-out' + (m ? (m.fits ? ' is-fit' : ' is-over') : '');
+        out.innerHTML = !m ? 'Pick your pay grade to compare this rent with your BAH.'
+          : m.fits ? '<b>Within your BAH.</b> ' + V.fmt.money(m.diff) + '/mo left over (BAH ' + V.fmt.money(m.rate) + ') toward utilities.'
+          : '<b>' + V.fmt.money(-m.diff) + '/mo over your BAH</b> (BAH ' + V.fmt.money(m.rate) + ').';
+      };
+      V.bah.bind(bahBox);
+      document.addEventListener('verdant:bah', draw);
+      draw();
+    }
 
     /* ---------- Save + share ---------- */
     const shareBtn = mount.querySelector('[data-share]');
@@ -223,7 +245,11 @@
     /* ---------- Neighborhood explorer ---------- */
     const exSection = mount.querySelector('[data-explore]');
     V.geo.locate(l).then((home) => {
-      if (home && window.VerdantExplore) window.VerdantExplore.lazy(exSection, l, home);
+      if (home && window.VerdantExplore) {
+        window.VerdantExplore.lazy(exSection, l, home);
+        const gs = mount.querySelector('[data-gates]');
+        if (gs) window.VerdantExplore.mountGates(gs, l, home);
+      }
       else exSection.innerHTML = '<h2>Location</h2><div class="map-frame"><iframe title="Map of ' + esc(full) + '" loading="lazy" src="https://maps.google.com/maps?q=' + encodeURIComponent(full) + '&z=15&output=embed"></iframe></div>';
     });
 
@@ -237,6 +263,20 @@
       wrap.querySelector('[data-similar-grid]').innerHTML = (await Promise.all(others.map((x) => V.card(x)))).join('');
       wrap.hidden = false;
     });
+
+    /* ---------- FEMA flood zone ---------- */
+    const floodEl = mount.querySelector('[data-flood]');
+    if (floodEl) {
+      const show = (f) => {
+        const d = V.flood.describe(f);
+        const icon = d.level === 'low' ? V.icon.shield : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3.5s-6 6.6-6 10.5a6 6 0 0 0 12 0c0-3.9-6-10.5-6-10.5z"/></svg>';
+        floodEl.className = 'flood flood--' + d.level + ' is-in';
+        floodEl.innerHTML = '<span class="flood-ico">' + icon + '</span><div><p class="flood-title">' + esc(d.title) + '</p><p>' + esc(d.text) + '</p>' +
+          '<p class="flood-src">Source: FEMA National Flood Hazard Layer' + (f && f.checked ? ', checked ' + esc(V.fmt.date(f.checked)) : '') + '. <a href="' + esc(V.flood.mapLink(l.lat, l.lng)) + '" target="_blank" rel="noopener">View FEMA map</a></p></div>';
+      };
+      if (l.flood) show(l.flood);
+      else V.flood.lookup(l.lat, l.lng).then(show).catch(() => { floodEl.innerHTML = '<p class="ex-status">FEMA’s flood map service didn’t respond. <a href="' + esc(V.flood.mapLink(l.lat, l.lng)) + '" target="_blank" rel="noopener" style="color:var(--forest)">Check the FEMA map</a></p>'; });
+    }
 
     /* ---------- Street View loads on demand ---------- */
     const svf = mount.querySelector('[data-sv]');
