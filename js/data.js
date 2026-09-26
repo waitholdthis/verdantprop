@@ -52,6 +52,21 @@
     deleteMedia: (id) => tx('media', 'readwrite', (s) => s.delete(id))
   };
 
+  function sanitizePano(p, httpsUrl, str) {
+    if (!p || typeof p !== 'object' || !Array.isArray(p.scenes)) return null;
+    const idOk = (v) => typeof v === 'string' && /^[\w-]{1,40}$/.test(v);
+    const angle = (v, lim) => { const n = Number(v); return isFinite(n) ? Math.max(-lim, Math.min(lim, n)) : 0; };
+    const scenes = p.scenes.filter((sc) => sc && idOk(sc.id) && httpsUrl(sc.ref)).slice(0, 40).map((sc) => ({
+      id: sc.id, room: str(sc.room, 40), ref: httpsUrl(sc.ref),
+      yaw: angle(sc.yaw, 180), pitch: angle(sc.pitch, 90), hfov: Math.max(40, Math.min(120, Number(sc.hfov) || 100)),
+      hotspots: Array.isArray(sc.hotspots) ? sc.hotspots.filter((h) => h && idOk(h.to)).slice(0, 20).map((h) => ({ to: h.to, yaw: angle(h.yaw, 180), pitch: angle(h.pitch, 90) })) : []
+    }));
+    const ids = new Set(scenes.map((sc) => sc.id));
+    scenes.forEach((sc) => { sc.hotspots = sc.hotspots.filter((h) => ids.has(h.to) && h.to !== sc.id); });
+    if (!scenes.length) return null;
+    return { first: ids.has(p.first) ? p.first : scenes[0].id, scenes };
+  }
+
   // Imported files are untrusted: keep only known fields, coerce types, and allow only https media.
   function sanitize(raw) {
     if (!raw || typeof raw !== 'object' || typeof raw.id !== 'string' || !/^[\w-]{1,80}$/.test(raw.id)) return null;
@@ -60,6 +75,9 @@
     const oneOf = (v, list, dflt) => (list.includes(v) ? v : dflt);
     const httpsUrl = (v) => (typeof v === 'string' && /^https:\/\/[^\s"'<>]+$/i.test(v) ? v.slice(0, 2000) : '');
     const lat = num(raw.lat), lng = num(raw.lng);
+    const photos = Array.isArray(raw.photos) ? raw.photos.map(httpsUrl).filter(Boolean).slice(0, 80) : [];
+    const rooms = {};
+    if (raw.rooms && typeof raw.rooms === 'object') photos.forEach((p) => { const r = str(raw.rooms[p], 40).trim(); if (r) rooms[p] = r; });
     return {
       id: raw.id,
       title: str(raw.title), address: str(raw.address), city: str(raw.city, 80), state: str(raw.state, 2).toUpperCase(), zip: str(raw.zip, 10),
@@ -73,7 +91,7 @@
       leaseTerm: str(raw.leaseTerm, 80), pets: str(raw.pets, 120), parking: str(raw.parking, 120),
       description: str(raw.description, 8000),
       features: Array.isArray(raw.features) ? raw.features.map((f) => str(f, 120)).filter(Boolean).slice(0, 60) : [],
-      photos: Array.isArray(raw.photos) ? raw.photos.map(httpsUrl).filter(Boolean).slice(0, 80) : [],
+      photos, rooms,
       video: raw.video && httpsUrl(raw.video.url) ? { url: httpsUrl(raw.video.url) } : null,
       tour: raw.tour && httpsUrl(raw.tour.url) ? { url: httpsUrl(raw.tour.url) } : null,
       lat: lat !== null && Math.abs(lat) <= 90 ? lat : null,
@@ -81,6 +99,7 @@
       nearby: Array.isArray(raw.nearby) ? raw.nearby.filter((p) => p && isFinite(p.lat) && isFinite(p.lng)).slice(0, 200).map((p) => ({
         name: str(p.name, 120), cat: oneOf(p.cat, ['dining', 'shopping', 'schools', 'parks', 'health'], 'parks'), type: str(p.type, 60), lat: Number(p.lat), lng: Number(p.lng)
       })) : [],
+      pano: sanitizePano(raw.pano, httpsUrl, str),
       featured: raw.featured === true,
       published: raw.published !== false,
       createdAt: num(raw.createdAt) || Date.now(),
@@ -115,7 +134,8 @@
     async remove(id) {
       const existing = await store.get(id);
       if (!existing) return;
-      const refs = [...(existing.photos || []), existing.video && existing.video.ref].filter(Boolean);
+      const panoRefs = existing.pano && Array.isArray(existing.pano.scenes) ? existing.pano.scenes.map((sc) => sc.ref) : [];
+      const refs = [...(existing.photos || []), existing.video && existing.video.ref, ...panoRefs].filter(Boolean);
       await Promise.all(refs.filter((r) => String(r).startsWith('idb:')).map((r) => adapter.deleteMedia(r.slice(4)).catch(() => {})));
       const isSeed = seed().some((l) => l.id === id);
       if (isSeed) await adapter.putListing({ id, deleted: true, updatedAt: Date.now() });
@@ -146,6 +166,11 @@
         const c = Object.assign({}, l);
         delete c.source;
         c.photos = (c.photos || []).filter((p) => !String(p).startsWith('idb:'));
+        if (c.pano && Array.isArray(c.pano.scenes)) {
+          const scenes = c.pano.scenes.filter((sc) => !String(sc.ref).startsWith('idb:'));
+          c.pano = scenes.length ? Object.assign({}, c.pano, { scenes }) : null;
+        }
+        c.rooms = Object.fromEntries(Object.entries(c.rooms || {}).filter(([p]) => c.photos.includes(p)));
         if (c.video && c.video.ref && String(c.video.ref).startsWith('idb:')) c.video = null;
         return c;
       }), null, 2);
@@ -237,7 +262,7 @@
     const tags = [];
     tags.push('<span class="tag tag--' + esc(LISTING_TYPES[l.type] ? l.type : 'rent') + '">' + esc(fmt.type(l)) + '</span>');
     if (l.status && l.status !== 'available') tags.push('<span class="tag tag--' + (l.status === 'pending' || l.status === 'coming' ? 'pending' : 'leased') + '">' + esc(fmt.status(l.status)) + '</span>');
-    if (l.tour && l.tour.url) tags.push('<span class="tag tag--dark">' + icon.cube + '3D tour</span>');
+    if ((l.tour && l.tour.url) || (l.pano && l.pano.scenes && l.pano.scenes.length)) tags.push('<span class="tag tag--dark">' + icon.cube + '3D tour</span>');
     if (l.video && (l.video.url || l.video.ref)) tags.push('<span class="tag tag--dark">' + icon.play + 'Video</span>');
     const href = opts.href || ('property.html?id=' + encodeURIComponent(l.id));
     const media = cover

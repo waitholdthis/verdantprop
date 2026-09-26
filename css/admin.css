@@ -102,16 +102,21 @@ body.admin { display: grid; grid-template-columns: 17rem minmax(0, 1fr); min-hei
 .ad-drop--sm { padding: 1.4rem 1rem; }
 
 .ad-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: .7rem; margin-top: 1.2rem; }
-.ad-photo { position: relative; aspect-ratio: 4 / 3; border-radius: 6px; overflow: hidden; background: var(--stone); cursor: grab; }
+.ad-photo { display: grid; gap: .35rem; }
+.ad-photo-img { position: relative; aspect-ratio: 4 / 3; border-radius: 6px; overflow: hidden; background: var(--stone); cursor: grab; }
+.ad-room { width: 100%; min-width: 0; padding: .45rem .6rem; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); font-size: .85rem; color: var(--ink); outline: none; transition: border-color .3s; }
+.ad-room:focus { border-color: var(--forest); }
+.ad-room:placeholder-shown { border-style: dashed; }
 .ad-photo img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-.ad-photo.dragging { opacity: .35; }
-.ad-photo.drop-target { outline: 2px solid var(--brass); outline-offset: 2px; }
+.ad-photo.dragging .ad-photo-img { opacity: .35; }
+.ad-photo.drop-target .ad-photo-img { outline: 2px solid var(--brass); outline-offset: 2px; }
 .ad-photo .cover { position: absolute; left: .4rem; top: .4rem; }
 .ad-photo .ctrl { position: absolute; right: .35rem; top: .35rem; display: flex; gap: .25rem; opacity: 0; transition: opacity .25s; }
 .ad-photo:hover .ctrl, .ad-photo:focus-within .ctrl { opacity: 1; }
 .ad-photo .ctrl button { width: 1.8rem; height: 1.8rem; border-radius: 50%; border: 0; background: rgba(250, 248, 243, .94); cursor: pointer; display: grid; place-items: center; color: var(--ink); }
 .ad-photo .ctrl button:hover { background: var(--forest); color: var(--bone); }
 .ad-photo .ctrl svg { width: .85rem; height: .85rem; }
+.ad-photo.busy { aspect-ratio: 4 / 3; border-radius: 6px; background: var(--stone); position: relative; overflow: hidden; }
 .ad-photo.busy::after { content: ""; position: absolute; inset: 0; background: rgba(250, 248, 243, .7) linear-gradient(90deg, transparent, rgba(176, 141, 87, .35), transparent) 0 0 / 200% 100%; animation: shimmer 1.2s linear infinite; }
 @keyframes shimmer { to { background-position: -200% 0; } }
 
@@ -155,3 +160,44 @@ body.admin { display: grid; grid-template-columns: 17rem minmax(0, 1fr); min-hei
 .ad-seg--lg span { padding: .6rem 1.3rem; font-size: .78rem; }
 @media (max-width: 900px) { .ad-icon-btn { width: 2.75rem; height: 2.75rem; } .ad-nav a { min-height: 2.75rem; } .ad-seg span { padding: .65rem 1rem; } }
 @media (max-width: 560px) { .ad-seg--lg { display: flex; } .ad-seg--lg label { flex: 1; text-align: center; } .ad-seg--lg span { padding-inline: .5rem; } .ad-head .row .btn { flex: 1 1 auto; } }
+
+/* 360° tour builder */
+.ad-steps { margin: 0 0 1.2rem; padding-left: 1.2rem; display: grid; gap: .35rem; font-size: .9rem; color: var(--body); }
+.ad-steps b { color: var(--ink); font-weight: 500; }
+.ad-scenes { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: .6rem; }
+.ad-scene {
+  display: grid; grid-template-columns: 7.5rem minmax(0, 1fr) auto; grid-template-rows: auto auto; gap: .35rem 1rem; align-items: center;
+  padding: .6rem; border: 1px solid var(--line); border-radius: 8px; background: var(--paper);
+  transition: border-color .3s, box-shadow .3s;
+}
+.ad-scene.on { border-color: var(--forest); box-shadow: 0 0 0 1px var(--forest); }
+.ad-scene-thumb { grid-row: span 2; position: relative; width: 7.5rem; aspect-ratio: 2 / 1; padding: 0; border: 0; border-radius: 5px; overflow: hidden; cursor: pointer; background: var(--stone); }
+.ad-scene-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.ad-scene-thumb span { position: absolute; left: .35rem; top: .35rem; min-width: 1.4rem; height: 1.4rem; border-radius: 999px; display: grid; place-items: center; background: var(--forest-900); color: var(--bone); font-size: .7rem; }
+.ad-scene-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem 1rem; font-size: .84rem; }
+.ad-start { display: inline-flex; align-items: center; gap: .4rem; cursor: pointer; color: var(--ink); }
+.ad-start input { accent-color: var(--forest); }
+.ad-scene-acts { grid-row: span 2; display: flex; gap: .35rem; }
+.ad-pano-editor { margin-top: 1.2rem; display: grid; gap: 1rem; }
+.pn-stage--admin { position: relative; inset: auto; aspect-ratio: 16 / 9; border-radius: 8px; }
+.ad-pano-tools { display: grid; gap: .8rem; }
+.ad-door-add { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.ad-door-add select { flex: 1 1 12rem; padding: .6rem .8rem; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--paper); color: var(--ink); font-size: .9rem; }
+.ad-doors { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; }
+.ad-doors li { display: flex; align-items: center; gap: .8rem; padding: .5rem .8rem; border-radius: 6px; background: var(--bone); font-size: .9rem; }
+.ad-doors li span { flex: 1; }
+.ad-doors b { font-weight: 500; color: var(--forest); }
+.ad-link-btn { border: 0; background: none; padding: .3rem .2rem; cursor: pointer; color: var(--forest); font-size: .8rem; text-decoration: underline; text-underline-offset: 3px; }
+.ad-link-btn:hover { color: var(--brass); }
+@media (max-width: 640px) {
+  .ad-scene { grid-template-columns: 5.5rem minmax(0, 1fr); }
+  .ad-scene-thumb { width: 5.5rem; }
+  .ad-scene-acts { grid-row: auto; grid-column: 1 / -1; justify-content: flex-end; }
+}
+/* Crosshair: shows exactly where "Add door here" will place a door */
+.ad-aim { position: absolute; left: 50%; top: 50%; z-index: 3; translate: -50% -50%; display: grid; justify-items: center; gap: .5rem; pointer-events: none; }
+.ad-aim span { position: relative; width: 3.4rem; height: 3.4rem; border-radius: 50%; border: 2px dashed rgba(250, 248, 243, .95); box-shadow: 0 0 0 1px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(0, 0, 0, .35); }
+.ad-aim span::before, .ad-aim span::after { content: ""; position: absolute; left: 50%; top: 50%; background: var(--brass-light); box-shadow: 0 0 0 1px rgba(0, 0, 0, .3); translate: -50% -50%; }
+.ad-aim span::before { width: 1.1rem; height: 2px; }
+.ad-aim span::after { width: 2px; height: 1.1rem; }
+.ad-aim em { position: absolute; top: calc(100% + .45rem); white-space: nowrap; font-style: normal; font-size: .72rem; letter-spacing: .08em; padding: .25rem .6rem; border-radius: 999px; background: rgba(7, 23, 15, .75); color: var(--bone); }

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Du+OJKJSbdUgz5nrHeWWINvez6XKDDU/tyj/5c2uvwo=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' https://nominatim.openstreetmap.org https://router.project-osrm.org https://overpass-api.de https://overpass.private.coffee https://overpass.kumi.systems; frame-src https:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Du+OJKJSbdUgz5nrHeWWINvez6XKDDU/tyj/5c2uvwo=' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https:; connect-src 'self' blob: https://nominatim.openstreetmap.org https://router.project-osrm.org https://overpass-api.de https://overpass.private.coffee https://overpass.kumi.systems; frame-src https:; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Listing Studio | Verdant Properties</title>
@@ -139,9 +139,10 @@
               <input type="file" accept="image/*" multiple hidden data-photo-input />
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M3.5 8h3.3l1.7-2.5h7l1.7 2.5h3.3v11h-17z"/><circle cx="12" cy="13" r="3.6"/></svg>
               <strong>Drop photos here or <u>browse</u></strong>
-              <span>JPG, PNG, WebP &middot; optimized automatically &middot; drag to reorder &middot; first photo is the cover</span>
+              <span>JPG, PNG, WebP &middot; optimized automatically &middot; drag to reorder &middot; first photo is the cover &middot; label each room</span>
             </label>
             <ul class="ad-photos" role="list" data-photos></ul>
+            <datalist id="room-list"><option value="Exterior"></option><option value="Front entry"></option><option value="Foyer"></option><option value="Hallway"></option><option value="Stairs"></option><option value="Upstairs landing"></option><option value="Living room"></option><option value="Family room"></option><option value="Kitchen"></option><option value="Dining room"></option><option value="Primary bedroom"></option><option value="Primary bathroom"></option><option value="Bedroom"></option><option value="Bathroom"></option><option value="Half bath"></option><option value="Office"></option><option value="Bonus room"></option><option value="Laundry"></option><option value="Mudroom"></option><option value="Sunroom"></option><option value="Garage"></option><option value="Backyard"></option><option value="Patio / deck"></option><option value="Basement"></option><option value="Closet"></option><option value="Community & amenities"></option><option value="Floor plan"></option></datalist>
           </section>
 
           <section class="ad-card">
@@ -156,10 +157,42 @@
 
           <section class="ad-card">
             <h2>3D walk-through</h2>
-            <p class="ad-hint" style="margin-bottom:1rem">Paste the share link from Matterport, Zillow 3D Home, Kuula, iGUIDE, CloudPano, or any tour that can be embedded.</p>
-            <div class="field"><label for="e-tour">Tour link</label><input id="e-tour" name="tourUrl" type="url" placeholder="https://my.matterport.com/show/?m=&hellip;" /></div>
-            <p class="ad-hint mt-1" data-tour-status></p>
-            <div class="media-frame mt-2" data-tour-preview hidden></div>
+            <div class="ad-seg" data-tour-mode><label><input type="radio" name="tourMode" value="pano" /><span>Build from 360&deg; photos</span></label><label><input type="radio" name="tourMode" value="url" /><span>Paste a tour link</span></label><label><input type="radio" name="tourMode" value="none" checked /><span>None</span></label></div>
+
+            <div class="mt-2" data-tour-url hidden>
+              <p class="ad-hint" style="margin-bottom:1rem">Paste the share link from Matterport, Zillow 3D Home, Kuula, iGUIDE, CloudPano, or any tour that can be embedded.</p>
+              <div class="field"><label for="e-tour">Tour link</label><input id="e-tour" name="tourUrl" type="url" placeholder="https://my.matterport.com/show/?m=&hellip;" /></div>
+              <p class="ad-hint mt-1" data-tour-status></p>
+              <div class="media-frame mt-2" data-tour-preview hidden></div>
+            </div>
+
+            <div class="mt-2" data-tour-pano hidden>
+              <ol class="ad-steps">
+                <li><b>Upload</b> one 360&deg; photo per room (the wide 2:1 images from a 360 camera or panorama app).</li>
+                <li><b>Name</b> each room, and use the arrow buttons to put them in the order you&rsquo;d walk through the home. That order is the auto-play tour.</li>
+                <li><b>Add doors:</b> pick a room, drag the preview until the crosshair sits on a doorway, then add a door to the room on the other side. Add one from the other room too, so visitors can walk back.</li>
+              </ol>
+              <label class="ad-drop ad-drop--sm" data-pano-drop>
+                <input type="file" accept="image/jpeg,image/png,image/webp" multiple hidden data-pano-input />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><ellipse cx="12" cy="12" rx="9" ry="4"/><path d="M3 12v0c0 2.2 4 4 9 4s9-1.8 9-4M12 3v3M12 18v3"/></svg>
+                <strong>Add 360&deg; photos</strong>
+                <span>Equirectangular JPG (2:1), e.g. 6000&times;3000 &middot; resized to 4096 wide so tours work on phones</span>
+              </label>
+              <ol class="ad-scenes" role="list" data-pano-scenes></ol>
+              <div class="ad-pano-editor" data-pano-editor hidden>
+                <div class="pn-stage pn-stage--admin"><div class="pn-viewer" data-pano-view></div><p class="pn-room" data-pano-editing></p><div class="ad-aim" aria-hidden="true"><span></span><em>New doors go here</em></div></div>
+                <div class="ad-pano-tools">
+                  <button class="btn btn--ghost btn--sm" type="button" data-pano-setview>Use this view as the starting angle</button>
+                  <div class="ad-door-add">
+                    <label class="sr-only" for="pano-door-to">Door leads to</label>
+                    <select id="pano-door-to" data-pano-door-to></select>
+                    <button class="btn btn--sm" type="button" data-pano-add-door>Add door here</button>
+                  </div>
+                  <ul class="ad-doors" role="list" data-pano-doors></ul>
+                  <p class="ad-hint" data-pano-msg>Drag the preview until the crosshair is on a doorway, then add a door.</p>
+                </div>
+              </div>
+            </div>
           </section>
 
           <section class="ad-card">
@@ -189,6 +222,7 @@
 
   <script src="data/listings.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/tour.js"></script>
   <script src="js/explore.js"></script>
   <script src="js/admin.js"></script>
 </body>
