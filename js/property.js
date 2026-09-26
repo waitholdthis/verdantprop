@@ -118,6 +118,15 @@
       ['Listed', l.createdAt ? listedAgo(l.createdAt) : '']
     ].filter((d) => d[1]);
 
+    // Google Street View loads only on request: it's heavy and contacts Google.
+    const sv = V.streetView.of(l);
+    const streetHTML = sv
+      ? '<section class="prop-section" id="street"><h2>From the <em style="color:var(--forest)">street</em></h2>' +
+        '<div class="media-frame sv-frame reveal" data-sv="' + esc(V.streetView.embed(sv)) + '">' +
+        '<button type="button" class="tour-launch" data-cursor="Enter"><span class="orb">' + V.icon.street + '</span><strong>See the street</strong><span>Google Street View &middot; look around the block</span></button>' +
+        '</div><p class="ex-credit">Street View imagery &copy; Google and may be a few years old.</p></section>'
+      : '';
+
     const mortgageHTML = l.type === 'sale' && l.price
       ? '<section class="prop-section" id="payment"><h2>Estimated <em style="color:var(--forest)">payment</em></h2>' +
         '<form class="calc reveal" data-calc>' +
@@ -157,6 +166,7 @@
           (features.length ? '<section class="prop-section"><h2>Features</h2><ul class="feat-grid reveal" role="list">' + features.map((f) => '<li>' + esc(f) + '</li>').join('') + '</ul></section>' : '') +
           (details.length ? '<section class="prop-section"><h2>Details</h2><dl class="detail-table reveal">' + details.map((d) => '<div><dt>' + esc(d[0]) + '</dt><dd>' + esc(d[1]) + '</dd></div>').join('') + '</dl></section>' : '') +
           mortgageHTML +
+          streetHTML +
           '<section class="prop-section" id="neighborhood" data-explore style="min-height:32rem"></section>' +
         '</div>' +
         '<aside class="aside-card reveal" aria-label="Schedule or inquire">' +
@@ -226,6 +236,12 @@
       const wrap = mount.querySelector('[data-similar]');
       wrap.querySelector('[data-similar-grid]').innerHTML = (await Promise.all(others.map((x) => V.card(x)))).join('');
       wrap.hidden = false;
+    });
+
+    /* ---------- Street View loads on demand ---------- */
+    const svf = mount.querySelector('[data-sv]');
+    if (svf) svf.querySelector('.tour-launch').addEventListener('click', () => {
+      svf.innerHTML = '<iframe src="' + esc(svf.dataset.sv) + '" title="Google Street View of ' + esc(l.address) + '" allow="fullscreen" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>';
     });
 
     /* ---------- 360° tour (Pannellum) loads on demand ---------- */

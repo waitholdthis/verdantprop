@@ -586,6 +586,42 @@
     setCoords(l.lat, l.lng);
     placePin(l.lat && Number(l.lat), l.lng && Number(l.lng));
 
+    /* Google Street View */
+    const svState = { custom: l.streetView && !l.streetView.off && isFinite(l.streetView.lat) ? l.streetView : null };
+    const svStatus = view.querySelector('[data-sv-status]');
+    const svPrev = view.querySelector('[data-sv-preview]');
+    const svBody = view.querySelector('[data-sv-body]');
+    form.elements.svOn.checked = !(l.streetView && l.streetView.off);
+    let svTimer;
+    const drawSV = () => {
+      const on = form.elements.svOn.checked;
+      svBody.hidden = !on;
+      if (!on) { svPrev.innerHTML = ''; return; }
+      const text = form.elements.svLink.value.trim();
+      const parsed = text ? V.streetView.parse(text) : null;
+      if (text && !parsed) {
+        svStatus.textContent = /goo\.gl|maps\.app/.test(text)
+          ? 'Short share links can’t be read. Open the link, then copy the full address from your browser’s address bar.'
+          : 'That doesn’t look like a Street View link. Follow the steps below.';
+        return;
+      }
+      const lat = Number(form.elements.lat.value), lng = Number(form.elements.lng.value);
+      const v = parsed || svState.custom || (lat && lng ? { lat, lng, heading: 0, pitch: 0, fov: 75 } : null);
+      if (!v) { svStatus.textContent = 'Place the map pin first; Street View starts from there.'; svPrev.hidden = true; return; }
+      svStatus.innerHTML = parsed ? 'Link read: facing ' + Math.round(v.heading) + '&deg;. Save to use this view.'
+        : svState.custom ? 'Using your saved angle (facing ' + Math.round(v.heading) + '&deg;). <button type="button" class="ad-link-btn" data-sv-reset>Reset to map pin</button>'
+        : 'Showing the street nearest the map pin, facing north. Paste a link to aim it at the home.';
+      const src = V.streetView.embed(v);
+      if (svPrev.dataset.src !== src) {
+        svPrev.dataset.src = src;
+        svPrev.innerHTML = '<iframe src="' + esc(src) + '" title="Street View preview" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
+      }
+      svPrev.hidden = false;
+    };
+    form.elements.svLink.addEventListener('input', () => { clearTimeout(svTimer); svTimer = setTimeout(drawSV, 400); });
+    form.elements.svOn.addEventListener('change', drawSV);
+    view.querySelector('.ad-sv').addEventListener('click', (e) => { if (e.target.closest('[data-sv-reset]')) { svState.custom = null; changed(); drawSV(); } });
+
     /* Collect + preview */
     const collect = () => {
       const f = form.elements;
@@ -614,6 +650,7 @@
         tour: tourMode() === 'url' && tUrl ? { url: tUrl } : null,
         pano: tourMode() === 'pano' && pano.scenes.length ? JSON.parse(JSON.stringify({ first: pano.first || pano.scenes[0].id, scenes: pano.scenes })) : null,
         lat: num(f.lat.value), lng: num(f.lng.value),
+        streetView: !f.svOn.checked ? { off: true } : (V.streetView.parse(f.svLink.value) || svState.custom || null),
         published: f.published.checked,
         featured: f.featured.checked
       });
@@ -692,6 +729,7 @@
     drawTour();
     await drawScenes();
     syncTourMode();
+    drawSV();
     dirty = false;
     form.elements.address.focus({ preventScroll: true });
   }

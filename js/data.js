@@ -100,6 +100,7 @@
         name: str(p.name, 120), cat: oneOf(p.cat, ['dining', 'shopping', 'schools', 'parks', 'health'], 'parks'), type: str(p.type, 60), lat: Number(p.lat), lng: Number(p.lng)
       })) : [],
       pano: sanitizePano(raw.pano, httpsUrl, str),
+      streetView: raw.streetView && raw.streetView.off === true ? { off: true } : raw.streetView ? clean({ lat: Number(raw.streetView.lat), lng: Number(raw.streetView.lng), heading: Number(raw.streetView.heading) || 0, pitch: Number(raw.streetView.pitch) || 0, fov: Number(raw.streetView.fov) || 75 }) : null,
       featured: raw.featured === true,
       published: raw.published !== false,
       createdAt: num(raw.createdAt) || Date.now(),
@@ -260,6 +261,39 @@
     }
   };
 
+  /* ---------- Google Street View ---------- */
+  const streetView = {
+    // Read a view from a Google Maps link (…/@lat,lng,3a,75y,210h,90t/…), an embed URL/iframe
+    // (…!1dLAT!2dLNG!3fHEADING!4fPITCH…), or null if it isn't one.
+    parse(text) {
+      const s = String(text || '').trim();
+      if (!s) return null;
+      let m = s.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?),(?:[\d.]+a,)?(?:([\d.]+)y,)?(?:(-?[\d.]+)h,)?(?:([\d.]+)t)?/);
+      if (m && /[\d.]+h|3a/.test(s)) {
+        return clean({ lat: +m[1], lng: +m[2], heading: m[4] ? +m[4] : 0, pitch: m[5] ? +m[5] - 90 : 0, fov: m[3] ? +m[3] : 75 });
+      }
+      m = s.match(/!1d(-?\d+(?:\.\d+)?)!2d(-?\d+(?:\.\d+)?)(?:!3f(-?[\d.]+))?(?:!4f(-?[\d.]+))?(?:!5f([\d.]+))?/);
+      if (m) return clean({ lat: +m[1], lng: +m[2], heading: m[3] ? +m[3] : 0, pitch: m[4] ? +m[4] : 0, fov: m[5] ? 180 / Math.PI * 2 * Math.atan(1 / (2 * +m[5])) : 75 });
+      return null;
+    },
+    // Keyless Google Maps embed in Street View mode.
+    embed(v) {
+      const zoom = Math.max(0.3, Math.min(3, 1 / (2 * Math.tan((v.fov || 75) * Math.PI / 360))));
+      return 'https://www.google.com/maps/embed?pb=!6m7!1m6!2m2!1d' + v.lat.toFixed(7) + '!2d' + v.lng.toFixed(7) +
+        '!3f' + (v.heading || 0).toFixed(2) + '!4f' + (v.pitch || 0).toFixed(2) + '!5f' + zoom.toFixed(3);
+    },
+    // The view for a listing: its saved Street View, else its map pin; null when turned off.
+    of(l) {
+      if (l.streetView && l.streetView.off) return null;
+      if (l.streetView && isFinite(l.streetView.lat)) return l.streetView;
+      return l.lat && l.lng ? { lat: +l.lat, lng: +l.lng, heading: 0, pitch: 0, fov: 75 } : null;
+    }
+  };
+  function clean(v) {
+    if (!isFinite(v.lat) || !isFinite(v.lng) || Math.abs(v.lat) > 90 || Math.abs(v.lng) > 180) return null;
+    return { lat: v.lat, lng: v.lng, heading: ((v.heading % 360) + 360) % 360, pitch: Math.max(-90, Math.min(90, v.pitch || 0)), fov: Math.max(15, Math.min(120, v.fov || 75)) };
+  }
+
   /* ---------- Icons ---------- */
   const icon = {
     arrow: '<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M3 12h17M14 6l6 6-6 6"/></svg>',
@@ -400,5 +434,5 @@
   fmt.LISTING_TYPES = LISTING_TYPES;
   fmt.PROPERTY_TYPES = PROPERTY_TYPES;
 
-  window.Verdant = { store, fmt, embed, icon, leaf, esc, card, uid, saved, geo };
+  window.Verdant = { store, fmt, embed, icon, leaf, esc, card, uid, saved, geo, streetView };
 })();

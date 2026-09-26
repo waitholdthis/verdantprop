@@ -1426,3 +1426,8 @@ body.nav-open .site-header .brand { color: var(--on-dark); position: relative; z
             mask-image: linear-gradient(90deg, #000 calc(100% - 3rem), transparent); }
   .reel-room-tab { scroll-snap-align: start; }
 }
+
+/* Street View */
+.sv-frame { aspect-ratio: 16 / 9; }
+.sv-frame .tour-launch { background: radial-gradient(80% 80% at 50% 50%, rgba(63, 116, 98, .55), rgba(7, 23, 15, .96)), var(--grain); }
+@media (max-width: 760px) { .sv-frame { aspect-ratio: 4 / 3; } }
