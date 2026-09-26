@@ -203,6 +203,11 @@
             <div class="ad-map mt-2" data-geo-map></div>
             <input type="hidden" name="lat" /><input type="hidden" name="lng" />
             <div class="ad-sv mt-2">
+              <div class="ad-card-head"><h3 class="ad-subhead">Nearby places</h3><button class="btn btn--ghost btn--sm" type="button" data-nb-refresh>Refresh from OpenStreetMap</button></div>
+              <p class="ad-hint" data-nb-status>Shown in the neighborhood explorer. Uncheck any place that has closed.</p>
+              <div class="ad-nb" data-nb-list></div>
+            </div>
+            <div class="ad-sv mt-2">
               <div class="ad-card-head"><h3 class="ad-subhead">Google Street View</h3><label class="ad-switch"><input type="checkbox" name="svOn" checked /><span></span>Show on listing</label></div>
               <div data-sv-body>
                 <div class="field"><label for="e-sv">Street View link <span class="ad-hint">&mdash; optional, sets the exact angle</span></label><input id="e-sv" name="svLink" autocomplete="off" placeholder="Paste a Google Maps Street View link" /></div>

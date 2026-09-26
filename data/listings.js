@@ -75,13 +75,6 @@ window.VERDANT_SEED = [
         "lng": -78.874328
       },
       {
-        "name": "Pierro's Italian Bistro",
-        "cat": "dining",
-        "type": "Restaurant",
-        "lat": 35.138159,
-        "lng": -78.874413
-      },
-      {
         "name": "Bojangles'",
         "cat": "dining",
         "type": "Fast food",
@@ -101,13 +94,6 @@ window.VERDANT_SEED = [
         "type": "Fast food",
         "lat": 35.157148,
         "lng": -78.869858
-      },
-      {
-        "name": "Duck Donuts",
-        "cat": "dining",
-        "type": "Café",
-        "lat": 35.130457,
-        "lng": -78.879055
       },
       {
         "name": "McDonald's",

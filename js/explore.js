@@ -52,6 +52,20 @@
     { name: 'Fayetteville Regional Airport', sub: 'FAY', icon: 'plane', lat: 34.9906914, lng: -78.8871044 }
   ];
 
+  // Places OpenStreetMap still lists but that have closed (verified, with source + date).
+  // Matched by name within ~150 m, so a new business at the same spot still shows.
+  const CLOSED = [
+    { name: "Pierro's Italian Bistro", lat: 35.13816, lng: -78.87441, note: 'Ramsey St location closed (moved to Hay St) — Yelp, checked 2026-09-26' },
+    { name: 'Duck Donuts', lat: 35.13046, lng: -78.87906, note: 'Closed 2024-12-24 — BizFayetteville, checked 2026-09-26' }
+  ];
+  const norm = (n) => String(n || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const isClosed = (p) => CLOSED.some((c) => norm(c.name) === norm(p.name) && V.geo.miles(c, p) < 0.1);
+  // Hide closed places and any the agent hid for this listing.
+  const visiblePlaces = (items, hidden) => {
+    const h = new Set((hidden || []).map(norm));
+    return items.filter((p) => !isClosed(p) && !h.has(norm(p.name)));
+  };
+
   const TYPE_LABEL = {
     fast_food: 'Fast food', cafe: 'Café', ice_cream: 'Ice cream', supermarket: 'Supermarket', convenience: 'Convenience store',
     department_store: 'Department store', variety_store: 'Variety store', mall: 'Shopping center', kindergarten: 'Preschool',
@@ -65,13 +79,13 @@
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage full or blocked */ } }
   };
 
-  async function fetchPlaces(c) {
+  async function fetchPlaces(c, opts) {
     // Coordinates are interpolated into the query, so accept only real numbers.
     c = { lat: Number(c.lat), lng: Number(c.lng) };
     if (!isFinite(c.lat) || !isFinite(c.lng) || Math.abs(c.lat) > 90 || Math.abs(c.lng) > 180) throw new Error('Invalid coordinates');
     const key = 'verdant:poi:' + c.lat.toFixed(4) + ',' + c.lng.toFixed(4);
     const cached = store.get(key);
-    if (cached && Date.now() - cached.t < WEEK) return cached.items;
+    if (cached && Date.now() - cached.t < WEEK && !(opts && opts.fresh)) return cached.items;
     const around = 'around:' + RADIUS + ',' + c.lat + ',' + c.lng;
     const q = '[out:json][timeout:25];(' +
       'nwr(' + around + ')[amenity~"^(restaurant|cafe|fast_food|ice_cream|school|kindergarten|college|university|childcare|hospital|clinic|pharmacy|doctors|dentist)$"][name];' +
@@ -82,11 +96,14 @@
     for (const ep of OVERPASS) {
       try {
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 12000);
-        const res = await fetch(ep, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, signal: ctrl.signal });
-        clearTimeout(timer);
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const json = await res.json();
+        // The timeout covers the whole download, so a server that stalls mid-response falls through to the next.
+        const timer = setTimeout(() => ctrl.abort(), 20000);
+        let json;
+        try {
+          const res = await fetch(ep, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, signal: ctrl.signal });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          json = await res.json();
+        } finally { clearTimeout(timer); }
         const seen = new Set();
         const items = json.elements.map((e) => {
           const t = e.tags || {};
@@ -251,7 +268,7 @@
     const stored = Array.isArray(l.nearby) && l.nearby.length
       ? Promise.resolve(l.nearby.map((p) => Object.assign({}, p, { mi: V.geo.miles(home, p) })).sort((a, b) => a.mi - b.mi))
       : fetchPlaces(home);
-    stored.then((items) => {
+    stored.then((all) => visiblePlaces(all, l.nearbyHidden)).then((items) => {
       places = items;
       CATS.forEach((k) => { const n = places.filter((p) => p.cat === k.key).length; const b = root.querySelector('[data-count="' + k.key + '"]'); if (b) b.textContent = n || ''; });
       draw();
@@ -330,9 +347,11 @@
       io.observe(section);
     },
     PRESETS,
+    CATS: CATS.map((k) => ({ key: k.key, label: k.label })),
+    isClosed,
     // Used by the admin to snapshot nearby places onto a listing at save time.
     async snapshot(c) {
-      const items = await fetchPlaces(c);
+      const items = visiblePlaces(await fetchPlaces(c, { fresh: true }));
       return CATS.flatMap((k) => items.filter((p) => p.cat === k.key).slice(0, 25))
         .map((p) => ({ name: p.name, cat: p.cat, type: p.type, lat: +p.lat.toFixed(6), lng: +p.lng.toFixed(6) }));
     }

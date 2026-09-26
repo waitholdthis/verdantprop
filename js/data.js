@@ -99,6 +99,7 @@
       nearby: Array.isArray(raw.nearby) ? raw.nearby.filter((p) => p && isFinite(p.lat) && isFinite(p.lng)).slice(0, 200).map((p) => ({
         name: str(p.name, 120), cat: oneOf(p.cat, ['dining', 'shopping', 'schools', 'parks', 'health'], 'parks'), type: str(p.type, 60), lat: Number(p.lat), lng: Number(p.lng)
       })) : [],
+      nearbyHidden: Array.isArray(raw.nearbyHidden) ? raw.nearbyHidden.map((n) => str(n, 120)).filter(Boolean).slice(0, 200) : [],
       pano: sanitizePano(raw.pano, httpsUrl, str),
       streetView: raw.streetView && raw.streetView.off === true ? { off: true } : raw.streetView ? clean({ lat: Number(raw.streetView.lat), lng: Number(raw.streetView.lng), heading: Number(raw.streetView.heading) || 0, pitch: Number(raw.streetView.pitch) || 0, fov: Number(raw.streetView.fov) || 75 }) : null,
       featured: raw.featured === true,

@@ -586,6 +586,42 @@
     setCoords(l.lat, l.lng);
     placePin(l.lat && Number(l.lat), l.lng && Number(l.lng));
 
+    /* Nearby places (OpenStreetMap snapshot) */
+    const nb = { items: (l.nearby || []).slice(), hidden: new Set(l.nearbyHidden || []), refreshed: false };
+    const nbList = view.querySelector('[data-nb-list]');
+    const nbStatus = view.querySelector('[data-nb-status]');
+    const drawNearby = () => {
+      const X = window.VerdantExplore;
+      if (!nb.items.length) { nbList.innerHTML = '<p class="ad-hint">No places saved yet. They’re collected when you save the listing, or click Refresh.</p>'; return; }
+      nbList.innerHTML = X.CATS.map((c) => {
+        const items = nb.items.filter((p) => p.cat === c.key);
+        if (!items.length) return '';
+        return '<fieldset><legend>' + esc(c.label) + '</legend>' + items.map((p) => {
+          const closed = X.isClosed(p);
+          return '<label class="ad-nb-item' + (closed ? ' is-closed' : '') + '"><input type="checkbox" data-nb-name="' + esc(p.name) + '"' + (!closed && !nb.hidden.has(p.name) ? ' checked' : '') + (closed ? ' disabled' : '') + '> <span>' + esc(p.name) + '</span>' + (closed ? '<em>Closed</em>' : '') + '</label>';
+        }).join('') + '</fieldset>';
+      }).join('');
+    };
+    nbList.addEventListener('change', (e) => {
+      const n = e.target.dataset.nbName;
+      if (!n) return;
+      if (e.target.checked) nb.hidden.delete(n); else nb.hidden.add(n);
+      changed();
+    });
+    view.querySelector('[data-nb-refresh]').addEventListener('click', async (e) => {
+      const btn = e.currentTarget; // currentTarget is cleared once the click finishes
+      const lat = Number(form.elements.lat.value), lng = Number(form.elements.lng.value);
+      if (!lat || !lng) { nbStatus.textContent = 'Place the map pin first.'; return; }
+      btn.disabled = true;
+      nbStatus.textContent = 'Getting the latest places from OpenStreetMap…';
+      const snap = await window.VerdantExplore.snapshot({ lat, lng }).catch(() => null);
+      btn.disabled = false;
+      if (!snap) { nbStatus.textContent = 'OpenStreetMap didn’t respond. Try again in a minute.'; return; }
+      nb.items = snap; nb.refreshed = true;
+      nbStatus.textContent = 'Updated: ' + snap.length + ' places. Uncheck any that have closed, then save.';
+      changed(); drawNearby();
+    });
+
     /* Google Street View */
     const svState = { custom: l.streetView && !l.streetView.off && isFinite(l.streetView.lat) ? l.streetView : null };
     const svStatus = view.querySelector('[data-sv-status]');
@@ -650,6 +686,8 @@
         tour: tourMode() === 'url' && tUrl ? { url: tUrl } : null,
         pano: tourMode() === 'pano' && pano.scenes.length ? JSON.parse(JSON.stringify({ first: pano.first || pano.scenes[0].id, scenes: pano.scenes })) : null,
         lat: num(f.lat.value), lng: num(f.lng.value),
+        nearby: nb.items.slice(),
+        nearbyHidden: [...nb.hidden],
         streetView: !f.svOn.checked ? { off: true } : (V.streetView.parse(f.svLink.value) || svState.custom || null),
         published: f.published.checked,
         featured: f.featured.checked
@@ -680,13 +718,13 @@
       }
       // Snapshot nearby places so visitors never wait on (or depend on) the live places service.
       const moved = !existing || d.lat !== Number(existing.lat) || d.lng !== Number(existing.lng);
-      if (d.lat && d.lng && window.VerdantExplore && (moved || !(existing && existing.nearby && existing.nearby.length))) {
+      if (d.lat && d.lng && window.VerdantExplore && !nb.refreshed && (moved || !nb.items.length)) {
         toast('Saving and mapping nearby places…');
         const snap = await Promise.race([
           window.VerdantExplore.snapshot({ lat: d.lat, lng: d.lng }).catch(() => null),
           new Promise((r) => setTimeout(() => r(null), 30000))
         ]);
-        if (snap && snap.length) d.nearby = snap;
+        if (snap && snap.length) { d.nearby = snap; nb.items = snap; drawNearby(); }
       }
       // Drop a replaced uploaded video
       if (existing && existing.video && existing.video.ref && (!d.video || d.video.ref !== existing.video.ref)) await V.store.deleteMedia(existing.video.ref);
@@ -730,6 +768,7 @@
     await drawScenes();
     syncTourMode();
     drawSV();
+    drawNearby();
     dirty = false;
     form.elements.address.focus({ preventScroll: true });
   }
