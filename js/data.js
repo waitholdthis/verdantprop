@@ -160,6 +160,26 @@
       store._urls.set(ref, url);
       return url;
     },
+    // Everything needed to publish: listings plus the uploaded photos, video, and 360° images
+    // stored in this browser, embedded as data URLs. Used to move local work onto the live site.
+    async exportBundle() {
+      const listings = (await store.all({ includeDrafts: true })).map((l) => { const c = Object.assign({}, l); delete c.source; return c; });
+      const refs = new Set();
+      listings.forEach((l) => {
+        (l.photos || []).forEach((p) => refs.add(p));
+        if (l.video && l.video.ref) refs.add(l.video.ref);
+        if (l.pano && Array.isArray(l.pano.scenes)) l.pano.scenes.forEach((s) => refs.add(s.ref));
+      });
+      const media = {};
+      for (const ref of refs) {
+        if (!String(ref).startsWith('idb:')) continue;
+        const rec = await adapter.getMedia(ref.slice(4)).catch(() => null);
+        if (!rec) continue;
+        const data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(rec.blob); });
+        media[ref] = { type: rec.type || rec.blob.type, name: rec.name || '', data };
+      }
+      return JSON.stringify({ format: 'verdant-bundle', version: 1, exportedAt: new Date().toISOString(), listings, media });
+    },
     async exportJSON() {
       const list = await store.all({ includeDrafts: true });
       return JSON.stringify(list.map((l) => {

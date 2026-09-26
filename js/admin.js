@@ -697,6 +697,21 @@
   }
 
   /* ---------- Export / import ---------- */
+  document.querySelector('[data-export-bundle]').addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    toast('Packaging listings, photos, and tours…');
+    try {
+      const json = await V.store.exportBundle();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+      a.download = 'verdant-publish-' + new Date().toISOString().slice(0, 10) + '.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      toast('Downloaded (' + (json.length / 1048576).toFixed(1) + ' MB). Put it in the project folder to publish.');
+    } catch (err) { toast('Export failed: ' + err.message); }
+    btn.disabled = false;
+  });
   document.querySelector('[data-export]').addEventListener('click', async () => {
     const json = await V.store.exportJSON();
     const a = document.createElement('a');
